@@ -15,6 +15,25 @@ API: `http://localhost:3000/api`.
 pnpm typecheck  # 仅检查 TypeScript 类型，不生成 dist
 ```
 
+## 代码检查
+
+在 `holocubic-live2d-server` 目录运行：
+
+```powershell
+pnpm lint      # 检查代码，任何警告或错误都会使命令失败
+pnpm lint:fix  # 自动修复可修复的问题，其余问题仍需手动处理
+```
+
+ESLint 使用 flat config：JavaScript 使用推荐规则，`src` 下的 TypeScript
+使用 typescript-eslint 的 `recommendedTypeChecked`，包含未处理 Promise 等类型规则。
+检查覆盖源码、JavaScript 测试和配置文件，忽略 `dist`、`coverage` 和 `node_modules`。
+格式沿用现有代码风格，未添加格式化规则。
+
+按 TypeScript 官方并存方案，`@typescript/native` 别名提供 TypeScript 7 的 `tsc`，
+构建和类型检查仍使用 TS 7；`typescript` 别名指向 `@typescript/typescript6`，
+为 typescript-eslint 提供兼容的 TS 6 API。
+参考：[TypeScript 6/7 并存说明](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0)。
+
 ## OpenTelemetry
 
 服务端记录 HTTP server spans 和 `http.server.request.duration` 耗时直方图（秒），支持 W3C `traceparent` / `tracestate` 上下文传播。路由使用模板聚合；不采集请求体、请求头、查询参数或未匹配 URL。5xx 标记为错误。当前未接入日志上报和下游自动埋点。

@@ -20,19 +20,20 @@ const server = serve(
 )
 
 let shuttingDown = false
-function shutdown() {
+async function shutdown() {
   if (shuttingDown) return
   shuttingDown = true
-  server.close(async (error) => {
-    try {
-      await shutdownTelemetry()
-      process.exitCode = error ? 1 : 0
-    } catch (error) {
-      console.error('Failed to shut down telemetry', error)
-      process.exitCode = 1
-    }
-  })
+  try {
+    const error = await new Promise<Error | undefined>((resolve) => {
+      server.close(resolve)
+    })
+    await shutdownTelemetry()
+    process.exitCode = error ? 1 : 0
+  } catch (error) {
+    console.error('Failed to shut down telemetry', error)
+    process.exitCode = 1
+  }
 }
 
-process.once('SIGINT', shutdown)
-process.once('SIGTERM', shutdown)
+process.once('SIGINT', () => { void shutdown() })
+process.once('SIGTERM', () => { void shutdown() })
