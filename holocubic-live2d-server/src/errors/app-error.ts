@@ -5,7 +5,11 @@ export class AppError extends Error {
   readonly code: string
   readonly desc: string
 
-  constructor(errorCode: ErrorCode, message?: string | null, options?: ErrorOptions) {
+  constructor(
+    errorCode: ErrorCode,
+    message?: string | null,
+    options?: ErrorOptions,
+  ) {
     super(message || errorCode.desc, options)
     this.name = new.target.name
     this.code = errorCode.code

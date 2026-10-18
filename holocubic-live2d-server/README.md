@@ -7,6 +7,74 @@ pnpm dev
 
 API: `http://localhost:3000/api`.
 
+## 代码格式化
+
+```powershell
+pnpm format        # 自动格式化代码、配置和文档
+pnpm format:check  # 检查格式，适合在 CI 中运行
+```
+
+Prettier 统一使用单引号、无分号、两空格缩进和 LF 换行。
+忽略 `dist`、`node_modules`、`coverage` 和 `pnpm-lock.yaml`。
+ESLint 负责代码检查，通过 `eslint-config-prettier` 关闭冲突的格式规则。
+VS Code 可安装 Prettier 扩展（`esbenp.prettier-vscode`），将其设为默认格式化工具并开启保存时格式化。
+
+## AI 协议接口
+
+通过 Vercel AI SDK 接入上游，对外提供文本对话协议：
+
+- OpenAI Chat Completions：`POST /api/v1/chat/completions`
+- Anthropic Messages：`POST /api/v1/messages`
+
+两个接口均支持非流式 JSON 和 `stream: true` 的 SSE，并可跨协议调用同一个上游。
+这些接口使用原生协议响应和 HTTP 400/502 错误，不包装 `BaseResponse`。
+已有 `/api` 业务接口保持原有返回约定。
+
+复制 `.env.example` 后配置 `AI_PROVIDER=openai` 或 `anthropic`，以及对应的
+`OPENAI_API_KEY` / `ANTHROPIC_API_KEY`。自定义兼容服务通过
+`OPENAI_BASE_URL` / `ANTHROPIC_BASE_URL` 指定，包括 `/v1`，不要包括最终接口路径。
+例如 Kimi Code 配合本项目的 AI SDK 应配置
+`ANTHROPIC_BASE_URL=https://api.kimi.com/coding/v1`，SDK 会追加 `/messages`。
+直接复制面向 Anthropic 官方 SDK 的 `/coding/` 地址会导致请求落到
+`/coding/messages` 并返回 404。修改 `.env` 后需重启 `pnpm dev`。
+请求中的 `model` 直接传给上游，不自动映射模型名称。
+当前用于本地部署，不校验客户端访问密钥。上游密钥由服务端配置。
+
+```powershell
+pnpm build
+node --env-file=.env dist/index.js
+```
+
+OpenAI 请求示例：
+
+```json
+{
+  "model": "your-upstream-model",
+  "messages": [{ "role": "user", "content": "你好" }],
+  "max_completion_tokens": 256,
+  "stream": false
+}
+```
+
+Anthropic 请求体还必须包含 `max_tokens`，系统提示使用顶层 `system`。
+支持字符串内容和 Anthropic 文本块数组，OpenAI 消息支持 system/user/assistant。
+公共参数包括 `temperature`（0–1）、`top_p`；还支持 OpenAI `max_completion_tokens`、
+`stop` 和 Anthropic `stop_sequences`。非流式响应包含 token 用量。
+OpenAI 流以 `[DONE]` 结束；Anthropic 流包含 message_start、content_block_start/delta/stop、
+message_delta 和 message_stop。上游流失败发送协议 error，不发送成功结束事件。
+客户端断开会取消上游流。
+
+当前为文本协议子集：工具调用、图片/音频、推理块、结构化输出、OpenAI Responses API、
+模型列表和 token 计数接口尚未实现。未知请求字段会返回 400。
+SDK 的通用结束原因将正常结束映射为 stop/end_turn，达到 token 限制映射为 length/max_tokens；
+暂不还原具体命中的 stop_sequence。Anthropic 流开始时的 token 用量为 0，最终用量在
+message_delta 中返回；OpenAI 流暂不返回 usage chunk。
+
+`pnpm test` 使用本地模拟上游验证两种对外协议 × 两种上游协议 × JSON/SSE，
+以及校验失败和原有路由。未使用真实模型密钥进行联网调用。
+Provider 配置参考：[OpenAI compatible](https://ai-sdk.dev/providers/openai-compatible-providers)、
+[Anthropic](https://ai-sdk.dev/providers/ai-sdk-providers/anthropic)。
+
 ## 类型检查
 
 在 `holocubic-live2d-server` 目录运行：

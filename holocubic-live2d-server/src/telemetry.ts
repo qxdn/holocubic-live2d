@@ -1,6 +1,9 @@
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { defaultResource, resourceFromAttributes } from '@opentelemetry/resources'
+import {
+  defaultResource,
+  resourceFromAttributes,
+} from '@opentelemetry/resources'
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 
@@ -11,7 +14,8 @@ const sdk =
     : new NodeSDK({
         resource: defaultResource().merge(
           resourceFromAttributes({
-            'service.name': process.env.OTEL_SERVICE_NAME || 'holocubic-live2d-server',
+            'service.name':
+              process.env.OTEL_SERVICE_NAME || 'holocubic-live2d-server',
           }),
         ),
         traceExporter: new OTLPTraceExporter(),

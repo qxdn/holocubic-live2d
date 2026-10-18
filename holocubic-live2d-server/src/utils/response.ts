@@ -5,7 +5,11 @@ import type { BaseResponse } from '../models/index.js'
 import { setTraceIdHeader } from './headers.js'
 
 /** 成功响应，HTTP 状态统一为 200。 */
-export function success<T = null>(c: Context, data: T | null = null, message = 'success') {
+export function success<T = null>(
+  c: Context,
+  data: T | null = null,
+  message = 'success',
+) {
   const traceId = ensureTraceId(c)
   setTraceIdHeader(c, traceId)
   const body: BaseResponse<T> = {
@@ -23,10 +27,12 @@ export function fail(c: Context, error: Error) {
   const traceId = ensureTraceId(c)
   setTraceIdHeader(c, traceId)
   const body: BaseResponse<null> = {
-    code: error instanceof AppError ? error.code : ErrorCodes.UNKNOWN_ERROR.code,
+    code:
+      error instanceof AppError ? error.code : ErrorCodes.UNKNOWN_ERROR.code,
     traceId,
     success: false,
-    message: error instanceof AppError ? error.message : ErrorCodes.UNKNOWN_ERROR.desc,
+    message:
+      error instanceof AppError ? error.message : ErrorCodes.UNKNOWN_ERROR.desc,
     data: null,
   }
   return c.json(body, 200)

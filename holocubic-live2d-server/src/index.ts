@@ -35,5 +35,9 @@ async function shutdown() {
   }
 }
 
-process.once('SIGINT', () => { void shutdown() })
-process.once('SIGTERM', () => { void shutdown() })
+process.once('SIGINT', () => {
+  void shutdown()
+})
+process.once('SIGTERM', () => {
+  void shutdown()
+})
