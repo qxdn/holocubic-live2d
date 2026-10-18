@@ -1,7 +1,7 @@
 import { SpanStatusCode, trace } from '@opentelemetry/api'
 import type { ErrorHandler } from 'hono'
-import { fail } from '../utils/index.js'
-import { ensureTraceId } from './request-context.js'
+import { fail } from '../utils/index.ts'
+import { ensureTraceId } from './request-context.ts'
 
 /** Catch request errors; business failures still use HTTP 200. */
 export const errorHandler: ErrorHandler = (error, c) => {

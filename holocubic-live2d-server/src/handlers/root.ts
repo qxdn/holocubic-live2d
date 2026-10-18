@@ -1,6 +1,6 @@
 import type { Handler } from 'hono'
-import { getGreeting } from '../services/greeting.js'
-import { success } from '../utils/index.js'
+import { getGreeting } from '../services/greeting.ts'
+import { success } from '../utils/index.ts'
 
 export const rootHandler: Handler = (c) => {
   const greeting = getGreeting()

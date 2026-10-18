@@ -1,4 +1,4 @@
-import type { ErrorCode } from './error-code.js'
+import type { ErrorCode } from './error-code.ts'
 
 /** 所有自定义业务异常的基类。内部异常细节请通过 cause 传入。 */
 export class AppError extends Error {

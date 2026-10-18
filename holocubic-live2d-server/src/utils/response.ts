@@ -1,8 +1,8 @@
 import type { Context } from 'hono'
-import { AppError, ErrorCodes } from '../errors/index.js'
-import { ensureTraceId } from '../middleware/request-context.js'
-import type { BaseResponse } from '../models/index.js'
-import { setTraceIdHeader } from './headers.js'
+import { AppError, ErrorCodes } from '../errors/index.ts'
+import { ensureTraceId } from '../middleware/request-context.ts'
+import type { BaseResponse } from '../models/index.ts'
+import { setTraceIdHeader } from './headers.ts'
 
 /** 成功响应，HTTP 状态统一为 200。 */
 export function success<T = null>(

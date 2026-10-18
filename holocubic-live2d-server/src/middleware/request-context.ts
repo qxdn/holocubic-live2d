@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { isSpanContextValid, trace } from '@opentelemetry/api'
 import type { Context, MiddlewareHandler } from 'hono'
-import { setTraceIdHeader } from '../utils/headers.js'
+import { setTraceIdHeader } from '../utils/headers.ts'
 
 declare module 'hono' {
   interface ContextVariableMap {

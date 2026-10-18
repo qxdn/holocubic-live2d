@@ -1,6 +1,6 @@
-import { anthropicHandler } from './anthropic.js'
-import { openAIHandler } from './openai.js'
-import type { Protocol } from './shared.js'
+import { anthropicHandler } from './anthropic.ts'
+import { openAIHandler } from './openai.ts'
+import type { Protocol } from './shared.ts'
 
 export function aiHandler(protocol: Protocol) {
   switch (protocol) {

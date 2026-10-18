@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from '@hono/zod-openapi'
 
 // 非空字符串校验；不去除空白字符。
 const text = z.string().min(1)
@@ -76,3 +76,54 @@ export const anthropicRequestSchema = z
 export type OpenAIRequest = z.infer<typeof openAIRequestSchema>
 /** 校验后的 Anthropic 请求类型，与 schema 保持同步。 */
 export type AnthropicRequest = z.infer<typeof anthropicRequestSchema>
+
+const tokens = z.number().int().nonnegative()
+
+export const openAIResponseSchema = z
+  .object({
+    id: z.string(),
+    object: z.literal('chat.completion'),
+    created: z.number().int(),
+    model: z.string(),
+    choices: z.array(
+      z.object({
+        index: z.number().int(),
+        message: z.object({
+          role: z.literal('assistant'),
+          content: z.string(),
+        }),
+        finish_reason: z.enum(['stop', 'length']),
+      }),
+    ),
+    usage: z.object({
+      prompt_tokens: tokens,
+      completion_tokens: tokens,
+      total_tokens: tokens,
+    }),
+  })
+  .openapi('ChatCompletion')
+
+export const anthropicResponseSchema = z
+  .object({
+    id: z.string(),
+    type: z.literal('message'),
+    role: z.literal('assistant'),
+    model: z.string(),
+    content: z.array(z.object({ type: z.literal('text'), text: z.string() })),
+    stop_reason: z.enum(['end_turn', 'max_tokens']),
+    stop_sequence: z.null(),
+    usage: z.object({ input_tokens: tokens, output_tokens: tokens }),
+  })
+  .openapi('Message')
+
+export function protocolErrorSchema(protocol: 'openai' | 'anthropic') {
+  const error = z.object({
+    type: z.enum(['invalid_request_error', 'api_error']),
+    message: z.string(),
+  })
+  return protocol === 'openai'
+    ? z
+        .object({ error: error.extend({ param: z.null(), code: z.null() }) })
+        .openapi('OpenAIError')
+    : z.object({ type: z.literal('error'), error }).openapi('AnthropicError')
+}

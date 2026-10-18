@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto'
 import type { Context } from 'hono'
 import { streamSSE } from 'hono/streaming'
-import { anthropicRequestSchema } from '../../models/index.js'
-import type { AIRequest } from '../../services/ai.js'
-import { generateReply, streamReply } from '../../services/ai.js'
-import { error, parseRequest } from './shared.js'
+import { anthropicRequestSchema } from '../../models/index.ts'
+import type { AIRequest } from '../../services/ai.ts'
+import { generateReply, streamReply } from '../../services/ai.ts'
+import { error, parseRequest } from './shared.ts'
 
 export async function anthropicHandler(c: Context) {
   const { data: input, error: parseError } = await parseRequest(

@@ -1,11 +1,11 @@
 // Telemetry 必须在 Hono 创建 tracer 和 meter 前初始化。
-import { shutdownTelemetry } from './telemetry.js'
+import { shutdownTelemetry } from './telemetry.ts'
 import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
-import { registerMiddleware } from './middleware/index.js'
-import { registerRoutes } from './routes/index.js'
+import { OpenAPIHono } from '@hono/zod-openapi'
+import { registerMiddleware } from './middleware/index.ts'
+import { registerRoutes } from './routes/index.ts'
 
-const app = new Hono()
+const app = new OpenAPIHono()
 registerMiddleware(app)
 registerRoutes(app)
 

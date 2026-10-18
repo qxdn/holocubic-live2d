@@ -7,6 +7,19 @@ pnpm dev
 
 API: `http://localhost:3000/api`.
 
+## OpenAPI 文档
+
+在后端目录运行以下命令，直接生成 `openapi.json`，无需启动服务或配置 `.env`：
+
+```powershell
+pnpm openapi:generate
+```
+
+文档覆盖问候接口及 OpenAI / Anthropic 文本对话接口，包含请求、JSON 响应、
+SSE 媒体类型和协议错误结构。稳定的 `operationId` 可供前端代码生成使用。
+AI 请求 schema 复用现有 Zod 校验定义；新增接口时，在对应路由模块注册文档。
+请求校验仍由现有 handler 处理，保留原有协议错误格式。
+
 ## 代码格式化
 
 ```powershell
