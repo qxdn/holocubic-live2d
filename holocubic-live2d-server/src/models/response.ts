@@ -1,4 +1,4 @@
-/** 统一业务返回结构。HTTP 状态码由接口单独设置。 */
+/** 统一业务返回结构，success / fail 工具函数均使用 HTTP 200。 */
 export interface BaseResponse<TData = unknown> {
   /** 业务状态码。 */
   code: string
