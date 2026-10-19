@@ -1,0 +1,34 @@
+/* Leva 默认只设置选区背景；需同时设置前景色以保证主色选区的对比度。 */
+.story-book-panel ::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* 原生 select 弹层由浏览器绘制，独立声明配色以跟随页面主题。 */
+.story-book-panel {
+  color-scheme: light;
+}
+
+.dark .story-book-panel {
+  color-scheme: dark;
+}
+
+.story-book-panel option {
+  background: var(--popover);
+  color: var(--popover-foreground);
+}
+
+/* Leva 用相邻 label 绘制复选框，补上轮廓并让勾选图标使用主色前景。 */
+.story-book-panel input[type="checkbox"] + label {
+  border: 1px solid var(--muted-foreground);
+  border-radius: calc(var(--radius) * 0.4);
+}
+
+.story-book-panel input[type="checkbox"]:checked + label {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.story-book-panel input[type="checkbox"]:checked + label > svg {
+  stroke: var(--primary-foreground);
+}
