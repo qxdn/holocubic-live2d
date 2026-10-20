@@ -25,7 +25,8 @@ export default defineConfig([
   },
   {
     files: ['src/components/**/*.{ts,tsx}', 'src/App.tsx'],
-    ignores: ['src/components/ui/**', 'src/components/theme-provider.tsx'],
+    // Registry components retain their upstream structure and documentation.
+    ignores: ['src/components/ui/**', 'src/components/ai-elements/**', 'src/components/theme-provider.tsx'],
     plugins: { jsdoc },
     rules: {
       'no-restricted-syntax': [
