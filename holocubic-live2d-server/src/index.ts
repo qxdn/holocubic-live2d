@@ -2,12 +2,21 @@
 import { shutdownTelemetry } from './telemetry.ts'
 import { serve } from '@hono/node-server'
 import { OpenAPIHono } from '@hono/zod-openapi'
+import { MastraServer } from '@mastra/hono'
+import type { HonoBindings, HonoVariables } from '@mastra/hono'
+import { mastra } from './core/mastra/index.ts'
 import { registerMiddleware } from './middleware/index.ts'
 import { registerRoutes } from './routes/index.ts'
 
-const app = new OpenAPIHono()
+const app = new OpenAPIHono<{
+  Bindings: HonoBindings
+  Variables: HonoVariables
+}>()
 registerMiddleware(app)
 registerRoutes(app)
+
+const mastraServer = new MastraServer({ app, mastra })
+await mastraServer.init()
 
 const server = serve(
   {
@@ -27,10 +36,14 @@ async function shutdown() {
     const error = await new Promise<Error | undefined>((resolve) => {
       server.close(resolve)
     })
-    await shutdownTelemetry()
+    try {
+      await mastra.shutdown()
+    } finally {
+      await shutdownTelemetry()
+    }
     process.exitCode = error ? 1 : 0
   } catch (error) {
-    console.error('Failed to shut down telemetry', error)
+    console.error('Failed to shut down server', error)
     process.exitCode = 1
   }
 }

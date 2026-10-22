@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { AppError, ErrorCodes } from '../errors/index.ts'
+import { AppError, ErrorCodes } from '../core/errors/index.ts'
 import { ensureTraceId } from '../middleware/request-context.ts'
 import type { BaseResponse } from '../models/index.ts'
 import { setTraceIdHeader } from './headers.ts'
