@@ -37,7 +37,10 @@ VS Code 可安装 Prettier 扩展（`esbenp.prettier-vscode`），将其设为�
 `src/core/mastra/index.ts` 导出统一 Mastra 实例；服务在适配器初始化完成后开始监听。
 
 Mastra 原生接口使用默认 `/api` 前缀，例如 `GET /api/agents`。
-当前未注册 Agent，列表为空，无需模型密钥；聊天能力后续接入，模型将在 Agent 代码中配置。
+已通过 `mastra.addAgent()` 动态注册 `testAgent`，定义放在 `src/core/agent/test.ts`，模型配置为
+通过 Anthropic 兼容协议调用 Kimi Code 的 `kimi-k2.6`。在 `.env` 中将
+`OPENAI_API_KEY` 设置为对应的 Kimi Code API Key 后即可调用。
+Agent 列表查询和 OpenAPI 生成不需要密钥。
 本次未配置工具、记忆、存储、工作流、后台 workers 或 Studio。
 Mastra 接口使用原生响应，现有业务接口保留统一响应约定和 HTTP 遥测。
 
@@ -45,8 +48,26 @@ Mastra 接口使用原生响应，现有业务接口保留统一响应约定和 
 不保留旧协议、参数或配置兼容层。前端暂不接入聊天接口。
 收到 SIGINT / SIGTERM 后关闭 HTTP 服务、Mastra 和遥测。
 
-`pnpm test` 验证无模型配置启动、业务路由、Mastra 空 Agent 列表、旧接口移除和正常退出，
-不包含模型联网调用。
+### 测试聊天接口
+
+`POST /api/chat` 接收 AI SDK UI messages，返回 `text/event-stream`，可供
+`useChat` 的 `DefaultChatTransport({ api: '/api/chat' })` 消费。
+
+```json
+{
+  "messages": [
+    {
+      "id": "user-1",
+      "role": "user",
+      "parts": [{ "type": "text", "text": "你好，请介绍一下自己" }]
+    }
+  ]
+}
+```
+
+接口通过 `handleChatStream` 转为 AI SDK v7 UI message 流，再通过
+`createUIMessageStreamResponse` 输出 SSE；支持模型提供的 reasoning 内容。
+未配置持久记忆，每次请求需携带所需的对话历史。
 
 参考：[Mastra Hono 适配器](https://mastra.ai/reference/server/hono-adapter)。
 

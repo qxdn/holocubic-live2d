@@ -55,6 +55,43 @@
           }
         }
       }
+    },
+    "/api/chat": {
+      "post": {
+        "operationId": "chat",
+        "tags": ["Chat"],
+        "summary": "与测试 Agent 对话，返回 AI SDK UI message 流",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "messages": {
+                    "type": "array",
+                    "items": {},
+                    "minItems": 1
+                  }
+                },
+                "required": ["messages"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AI SDK UI message SSE 流。",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "webhooks": {}
