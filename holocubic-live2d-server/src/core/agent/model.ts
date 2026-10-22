@@ -1,28 +1,19 @@
-import {
-  createAnthropic,
-  type AnthropicProviderSettings,
-} from '@ai-sdk/anthropic'
-import {
-  createOpenAICompatible,
-  type OpenAICompatibleProviderSettings,
-} from '@ai-sdk/openai-compatible'
+import { createAnthropic } from '@ai-sdk/anthropic'
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
+import type { Provider } from '../models/provider.ts'
 
-type ModelArguments =
-  | [
-      protocol: 'openai',
-      modelId: string,
-      options: OpenAICompatibleProviderSettings,
-    ]
-  | [protocol: 'anthropic', modelId: string, options: AnthropicProviderSettings]
+/** 根据服务提供方的协议和配置创建指定模型。 */
+export const createModel = (provider: Provider, model: string) => {
+  const options = {
+    name: provider.name,
+    baseURL: provider.baseUrl,
+    apiKey: provider.apiKey,
+  }
 
-/** 根据协议创建模型，options 使用对应适配器的原生配置。 */
-export const createModel = (
-  ...[protocol, modelId, options]: ModelArguments
-) => {
-  switch (protocol) {
+  switch (provider.protocol) {
     case 'openai':
-      return createOpenAICompatible(options).chatModel(modelId)
+      return createOpenAICompatible(options).chatModel(model)
     case 'anthropic':
-      return createAnthropic(options)(modelId)
+      return createAnthropic(options)(model)
   }
 }
