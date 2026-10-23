@@ -1,67 +1,88 @@
-import type { ComponentProps } from "react"
+import { useState } from "react"
+import { useChat } from "@ai-sdk/react"
+import { DefaultChatTransport } from "ai"
+import { Chat } from "@/components/chat"
+import { SquarePenIcon, SparklesIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { StoryBook, useControls, useCreateStore } from "@/components/story-book"
 
-type ButtonVariant = NonNullable<ComponentProps<typeof Button>["variant"]>
-type ButtonSize = NonNullable<ComponentProps<typeof Button>["size"]>
+const transport = new DefaultChatTransport({ api: "/api/chat" })
 
-const variants: ButtonVariant[] = [
-  "default",
-  "secondary",
-  "outline",
-  "ghost",
-  "destructive",
-  "link",
-]
-const sizes: ButtonSize[] = ["xs", "sm", "default", "lg"]
-
-/** 组件交互预览入口，每个示例使用独立的 Leva store。 */
+/** Owns page layout and chat data flow; sessions reset on page reload. */
 export const App = () => {
-  const textStore = useCreateStore()
-  const { color, fontSize, fontWeight, text, upperCase } = useControls(
-    {
-      color: "#ff005b",
-      fontSize: { value: 14, min: 4, max: 100, step: 2 },
-      fontWeight: { value: "normal", options: ["normal", "bold"] },
-      text: "StoryBook",
-      upperCase: false,
-    },
-    { store: textStore }
-  )
-  const store = useCreateStore()
-  const { label, variant, size, disabled } = useControls(
-    {
-      label: { label: "按钮文字", value: "Hello, HoloCubic" },
-      variant: { label: "样式", options: variants },
-      size: { label: "尺寸", options: sizes, value: sizes[2] },
-      disabled: { label: "禁用", value: false },
-    },
-    { store }
-  )
+  const [input, setInput] = useState("")
+  const {
+    messages,
+    sendMessage,
+    status,
+    stop,
+    regenerate,
+    setMessages,
+    error,
+    clearError,
+  } = useChat({ transport })
+  const busy = status === "submitted" || status === "streaming"
+
+  const handleSend = (text: string) => {
+    if (busy || !text.trim()) return
+    clearError()
+    void sendMessage({ text: text.trim() })
+    setInput("")
+  }
+
+  const handleNewChat = () => {
+    if (busy) return
+    setMessages([])
+    clearError()
+    setInput("")
+  }
 
   return (
-    <main className="mx-auto min-h-svh max-w-5xl px-5 py-12 sm:px-8 sm:py-20">
-      <p className="mb-3 text-xs font-medium tracking-widest text-muted-foreground">
-        HOLOCUBIC / COMPONENTS
-      </p>
-      <h1 className="text-3xl font-semibold tracking-tight">StoryBook</h1>
-      <p className="mt-3 mb-8 text-sm leading-7 text-muted-foreground">
-        组件的交互预览。调整右侧参数，即时查看组件的不同状态。
-      </p>
-      <StoryBook levaStore={textStore} className="mb-6">
-        <div style={{ color, fontSize, fontWeight }}>
-          {upperCase ? text.toUpperCase() : text}
+    <main className="flex h-svh w-full flex-col overflow-hidden bg-background text-foreground">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b px-5 sm:px-6">
+        <div className="flex items-center gap-2 font-semibold">
+          <SparklesIcon className="size-5" />
+          HoloCubic{" "}
+          <span className="font-normal text-muted-foreground">Chat</span>
         </div>
-      </StoryBook>
-      <StoryBook levaStore={store}>
-        <Button variant={variant} size={size} disabled={disabled}>
-          {label}
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={busy || !messages.length}
+          onClick={handleNewChat}
+        >
+          <SquarePenIcon className="size-4" />
+          新对话
         </Button>
-      </StoryBook>
-      <p className="mt-4 text-xs text-muted-foreground">
-        按 <kbd className="rounded border px-1.5 py-0.5 font-mono">D</kbd>{" "}
-        切换浅色 / 深色主题
-      </p>
+      </header>
+      {/* 侧栏预留给设置与 Live2D；窄屏先保证聊天区域可用。 */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,6fr)_minmax(0,3fr)]">
+        <aside
+          aria-label="StoryBook 与设置预留区域"
+          className="hidden min-h-0 overflow-y-auto border-r lg:block"
+        />
+        <section
+          aria-label="Chat"
+          className="flex min-h-0 min-w-0 flex-col overflow-hidden"
+        >
+          <Chat
+            messages={messages}
+            status={status}
+            error={error}
+            input={input}
+            onInputChange={setInput}
+            onSend={handleSend}
+            onStop={() => void stop()}
+            onRegenerate={() => {
+              if (!busy) void regenerate()
+            }}
+          />
+        </section>
+        <aside
+          aria-label="Live2D 预留区域"
+          className="hidden min-h-0 overflow-hidden border-l lg:block"
+        />
+      </div>
+      <footer aria-label="页脚预留区域" className="h-10 shrink-0 border-t" />
     </main>
   )
 }
