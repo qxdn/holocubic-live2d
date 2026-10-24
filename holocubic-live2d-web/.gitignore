@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Local Live2D models and Cubism Core runtime
+/public/models/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

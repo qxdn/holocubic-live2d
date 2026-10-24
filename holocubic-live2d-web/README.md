@@ -2,6 +2,21 @@
 
 This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
 
+## Live2D
+
+前端使用 PixiJS 6 与 `pixi-live2d-display/cubism4`，在桌面布局右侧加载本地 Haru 示例模型。
+目前只包含模型展示和库默认的待机动画，尚未接入聊天、语音或点击动作。
+画布跟随容器缩放；窄屏沿用现有布局隐藏右侧区域并暂停动画。
+
+替换模型时，将完整模型目录放入 `public/models/`，保留模型文件引用的相对路径，
+然后修改 `src/App.tsx` 中 `Live2D` 的 `modelUrl`，指向对应的 `.model3.json`。
+`public/live2d/live2dcubismcore.min.js` 在应用启动前加载，不能作为普通 ES 模块导入。
+
+资源来源与许可：
+
+- Haru 模型及配套资源：[官方 CubismWebSamples，4-r.7](https://github.com/Live2D/CubismWebSamples/tree/4-r.7/Samples/Resources/Haru)，适用 [Live2D Free Material License](https://www.live2d.com/eula/live2d-free-material-license-agreement_en.html)。
+- Cubism Core：[Live2D 官方分发文件](https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js)，保留文件内版权和许可声明，适用 [Live2D Proprietary Software License](https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html)。
+
 ## API 请求
 
 后端更新接口后，先在 `holocubic-live2d-server` 运行 `pnpm openapi:generate`，

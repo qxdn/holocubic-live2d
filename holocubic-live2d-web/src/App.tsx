@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { Chat } from "@/components/chat"
+import { Live2D } from "@/components/live2d"
 import { SquarePenIcon, SparklesIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -78,9 +79,13 @@ export const App = () => {
           />
         </section>
         <aside
-          aria-label="Live2D 预留区域"
+          aria-label="Live2D"
           className="hidden min-h-0 overflow-hidden border-l lg:block"
-        />
+        >
+          <Live2D
+            modelUrl={`${import.meta.env.BASE_URL}models/Haru/Haru.model3.json`}
+          />
+        </aside>
       </div>
       <footer aria-label="页脚预留区域" className="h-10 shrink-0 border-t" />
     </main>
