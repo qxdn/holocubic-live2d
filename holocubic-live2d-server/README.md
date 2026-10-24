@@ -134,6 +134,22 @@ pnpm test
 
 服务端默认端口为 3000，可通过 `PORT` 修改。HTTP 遥测配置沿用现有实现。
 
+## Tool 声明与复用
+
+每个具体工具在 `src/core/tools/` 下独占一个文件夹，例如 `hello/index.ts`。在工具定义处创建实例并调用 `registerTool(instance)` 保存，构造依赖由该处传入；存储层不创建实例。通过 `getTool(id)` 获取单个实例，或遍历 `getTools()` 并调用 `toMastraTool()`；不存在的 ID 返回 `undefined`。元信息通过基类方法提供：`getId()` 默认返回类名，`getDescription()` 默认返回空字符串，`getExecution()` 默认返回 `server`，具体工具可重写这些方法。公共方法由 `ToolDefinition` 提供，服务端 `BaseTool` 继承这些方法并增加执行增强。
+
+服务端工具继承 `BaseTool<Input, Output>`，实现 `getInputSchema()` 和 `execute(input, context)`；需要输出校验时重写 `getOutputSchema()`，默认不提供。输入输出 Schema 交给 Mastra 描述参数和校验数据，不会从 TypeScript 方法签名自动生成。
+
+```typescript
+const helloTool = new HelloTool().toMastraTool()
+```
+
+直接导入具体工具类，通过构造函数传入依赖，再调用 `toMastraTool()` 创建原生 Mastra 工具，放入 Agent 的 `tools` 配置即可。
+
+公共 Service 通过构造函数注入，可以供多个工具使用。调用上下文直接沿用 Mastra，实例不保存本次请求的信息。基类使用 `context.observe` 记录开始、成功、失败和耗时，附带 `toolId`、`toolCallId`、请求 `traceId`；业务异常额外记录 `code`，保留并继续抛出原始异常，不记录完整输入输出。未配置 Mastra 可观测性时，其日志接口可能不输出日志。
+
+客户端工具继承 `ToolDefinition`，重写 `getExecution(): 'client' { return 'client' }`，通过 `getInputSchema()` 提供参数定义，不实现服务端执行方法。实际前端执行与结果回传尚未接入，也未实现双端步骤编排、自动重试和回滚。
+
 ## 请求上下文与异常
 
 `requestContextMiddleware` 在 telemetry middleware 后注册，将当前 OTel trace ID 写入 `c.get('traceId')` 和响应头 `X-Trace-Id`。未启用 SDK 时生成 32 位十六进制请求标识。业务响应的 `traceId` 统一从上下文读取。

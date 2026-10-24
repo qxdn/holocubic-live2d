@@ -1,13 +1,15 @@
 import { Agent } from '@mastra/core/agent'
 import { AnthropicProvider } from '../models/anthropic-provider.ts'
 import { createModel } from './model.ts'
-import { helloTool } from '../tools/hello.ts'
+import { getTools } from '../tools/index.ts'
 
 /** 用于验证聊天和 UI message 流的简单 Agent。 */
 export const testAgent = new Agent({
   id: 'test-agent',
   name: 'Test Agent',
-  tools: { hello: helloTool },
+  tools: Object.fromEntries(
+    getTools().map((tool) => [tool.getId(), tool.toMastraTool()]),
+  ),
   instructions: '你是一个测试助手。请用简洁的中文回答用户的问题。',
   model: createModel(
     new AnthropicProvider({

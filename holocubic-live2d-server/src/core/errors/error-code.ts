@@ -16,6 +16,15 @@ function defineErrorCode(code: string, desc: string): ErrorCode {
 export const ErrorCodes = {
   // 2：外部错误；01：服务提供方；01：获取模型列表失败。
   PROVIDER_MODELS_FETCH_FAILED: defineErrorCode('20101', '获取模型列表失败'),
+  // 3：系统报错；01：工具配置。
+  TOOL_SERVER_EXECUTOR_MISSING: defineErrorCode(
+    '30104',
+    '服务端工具缺少执行方法',
+  ),
+  TOOL_CLIENT_EXECUTOR_UNEXPECTED: defineErrorCode(
+    '30105',
+    '客户端工具不应提供服务端执行方法',
+  ),
   // 4：未知错误；00：通用；01：未知错误。
   UNKNOWN_ERROR: defineErrorCode('40001', '未知错误'),
 } as const satisfies Record<string, ErrorCode>

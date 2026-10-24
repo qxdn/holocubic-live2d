@@ -1,4 +1,5 @@
 import { handleChatStream } from '@mastra/ai-sdk'
+import { RequestContext } from '@mastra/core/request-context'
 import { createUIMessageStreamResponse, validateUIMessages } from 'ai'
 import type { Handler } from 'hono'
 import { AppError, ErrorCodes } from '../core/errors/index.ts'
@@ -11,11 +12,13 @@ export const chatHandler: Handler = async (c) => {
   const body = chatRequestSchema.parse(await c.req.json())
   const messages = await validateUIMessages({ messages: body.messages })
   const traceId = ensureTraceId(c)
+  const requestContext = new RequestContext<{ traceId: string }>()
+  requestContext.set('traceId', traceId)
   const stream = await handleChatStream({
     mastra,
     agentId: 'testAgent',
     version: 'v7',
-    params: { messages },
+    params: { messages, requestContext },
     sendReasoning: true,
     onError: (error) => {
       if (error instanceof AppError) {
