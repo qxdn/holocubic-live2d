@@ -6,7 +6,7 @@ import { Chat } from "@/components/chat"
 import { Live2D, motions } from "@/components/live2d"
 import type { Live2DHandle } from "@/components/live2d"
 import { StoryBook, useControls } from "@/components/story-book"
-import { SquarePenIcon, SparklesIcon } from "lucide-react"
+import { MoonIcon, SquarePenIcon, SparklesIcon, SunIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "@/components/theme-provider"
 
@@ -20,14 +20,6 @@ export const App = () => {
 
   const [{ mode: storyBookMode }] = useControls(
     () => ({
-      Theme: folder({
-        theme: {
-          label: "主题",
-          value: theme,
-          options: { 浅色: "light", 暗黑: "dark", 跟随系统: "system" },
-          onChange: (value: typeof theme) => setTheme(value),
-        },
-      }),
       StoryBook: folder({
         mode: {
           label: "展示模式",
@@ -47,7 +39,7 @@ export const App = () => {
         }),
       }),
     }),
-    [theme, setTheme]
+    []
   )
 
   const [input, setInput] = useState("")
@@ -94,6 +86,19 @@ export const App = () => {
           >
             <SquarePenIcon className="size-4" />
             新对话
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="切换深色 / 浅色模式"
+            title="切换深色 / 浅色模式"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? (
+              <SunIcon className="size-4" />
+            ) : (
+              <MoonIcon className="size-4" />
+            )}
           </Button>
         </div>
       </header>
