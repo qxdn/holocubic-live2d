@@ -8,6 +8,7 @@ import type { Live2DHandle } from "@/components/live2d"
 import { StoryBook, useControls } from "@/components/story-book"
 import { SquarePenIcon, SparklesIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useTheme } from "@/components/theme-provider"
 
 const transport = new DefaultChatTransport({ api: "/api/chat" })
 const initialModelUrl = `${import.meta.env.BASE_URL}models/Haru/Haru.model3.json`
@@ -15,27 +16,39 @@ const initialModelUrl = `${import.meta.env.BASE_URL}models/Haru/Haru.model3.json
 /** Owns page layout and chat data flow; sessions reset on page reload. */
 export const App = () => {
   const live2dRef = useRef<Live2DHandle>(null)
+  const { theme, setTheme } = useTheme()
 
-  const [{ mode: storyBookMode }] = useControls(() => ({
-    StoryBook: folder({
-      mode: {
-        label: "展示模式",
-        options: { panel: "panel", floating: "floating" } as const,
-      },
-    }),
-    Live2D: folder({
-      motionName: {
-        label: "动作名称",
-        value: motions.keys().next().value,
-        options: Array.from(motions.keys()),
-      },
-      播放动作: button((get) => {
-        void live2dRef.current
-          ?.playMotion(get("Live2D.motionName"))
-          .catch(console.error)
+  const [{ mode: storyBookMode }] = useControls(
+    () => ({
+      Theme: folder({
+        theme: {
+          label: "主题",
+          value: theme,
+          options: { 浅色: "light", 暗黑: "dark", 跟随系统: "system" },
+          onChange: (value: typeof theme) => setTheme(value),
+        },
+      }),
+      StoryBook: folder({
+        mode: {
+          label: "展示模式",
+          options: { panel: "panel", floating: "floating" } as const,
+        },
+      }),
+      Live2D: folder({
+        motionName: {
+          label: "动作名称",
+          value: motions.keys().next().value,
+          options: Array.from(motions.keys()),
+        },
+        播放动作: button((get) => {
+          void live2dRef.current
+            ?.playMotion(get("Live2D.motionName"))
+            .catch(console.error)
+        }),
       }),
     }),
-  }))
+    [theme, setTheme]
+  )
 
   const [input, setInput] = useState("")
   const {
