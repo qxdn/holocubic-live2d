@@ -4,6 +4,12 @@
   color: var(--primary-foreground);
 }
 
+/* Leva 的按钮文字默认使用高亮文字色，主色浅色背景需配套前景色。 */
+.story-book-panel button {
+  color: var(--primary-foreground) !important;
+  background: var(--primary);
+}
+
 /* 原生 select 弹层由浏览器绘制，独立声明配色以跟随页面主题。 */
 .story-book-panel {
   color-scheme: light;

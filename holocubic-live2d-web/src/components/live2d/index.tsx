@@ -1,11 +1,22 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useImperativeHandle, useRef, useState } from "react"
+import type { Ref } from "react"
 import { Application, Ticker } from "pixi.js"
 import { Live2DModel } from "pixi-live2d-display/cubism4"
+import { motions } from "./motions"
+
+export { motions } from "./motions"
 
 Live2DModel.registerTicker(Ticker)
 
 type Live2DProps = {
   modelUrl: string
+  ref?: Ref<Live2DHandle>
+}
+
+/** 客户端角色控制接口；调用成功表示动作已开始播放。 */
+export type Live2DHandle = {
+  /** 按名称播放动作；返回是否成功开始，不等待播放结束。当前名称表固定为 Haru。 */
+  playMotion: (name: string) => Promise<boolean>
 }
 
 /** 首次适配模型并监听容器尺寸变化，返回的观察器由组件卸载时断开。 */
@@ -45,17 +56,32 @@ const observeModelResize = (
 }
 
 /** Loads a Cubism model into its own canvas and fits it to the available space. */
-export const Live2D = ({ modelUrl }: Live2DProps) => {
+export const Live2D = ({ modelUrl, ref }: Live2DProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
+  const modelRef = useRef<Live2DModel | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>()
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      async playMotion(name) {
+        const model = modelRef.current
+        if (!model) throw new Error("Live2D 尚未就绪")
+        const motion = motions.get(name)
+        if (!motion) throw new Error(`未知动作：${name}`)
+        return model.motion(motion.group, motion.index)
+      },
+    }),
+    []
+  )
 
   useEffect(() => {
     const container = containerRef.current!
     let app: Application | undefined
     let observer: ResizeObserver | undefined
 
-    const load = async () => {
+    const initialize = async () => {
       setLoading(true)
       setError(undefined)
       try {
@@ -69,26 +95,23 @@ export const Live2D = ({ modelUrl }: Live2DProps) => {
         })
         const canvas = app.view as HTMLCanvasElement
         container.appendChild(canvas)
-
-        const model = await Live2DModel.from(modelUrl, {
-          autoInteract: true,
-        })
+        const model = await Live2DModel.from(modelUrl, { autoInteract: true })
         app.stage.addChild(model)
-
+        modelRef.current = model
         observer = observeModelResize(container, app, model)
       } catch (cause) {
-        app?.destroy(true, { children: true, texture: true, baseTexture: true })
-        app = undefined
-        setError(cause instanceof Error ? cause.message : "模型加载失败")
+        if (!app || app.stage) {
+          setError(cause instanceof Error ? cause.message : "模型加载失败")
+        }
       } finally {
-        setLoading(false)
+        if (!app || app.stage) setLoading(false)
       }
     }
-
-    void load()
+    void initialize()
     return () => {
+      modelRef.current = null
       observer?.disconnect()
-      app?.destroy(true, { children: true, texture: true, baseTexture: true })
+      app?.destroy(true, { children: true })
     }
   }, [modelUrl])
 
