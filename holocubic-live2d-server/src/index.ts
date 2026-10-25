@@ -5,6 +5,7 @@ import { OpenAPIHono } from '@hono/zod-openapi'
 import { MastraServer } from '@mastra/hono'
 import type { HonoBindings, HonoVariables } from '@mastra/hono'
 import { mastra } from './core/mastra/index.ts'
+import { logger } from './core/logger/index.ts'
 import { registerMiddleware } from './middleware/index.ts'
 import { registerRoutes } from './routes/index.ts'
 
@@ -24,7 +25,7 @@ const server = serve(
     port: Number(process.env.PORT ?? 3000),
   },
   (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`)
+    logger.info({ port: info.port }, 'Server is running')
   },
 )
 
@@ -43,7 +44,7 @@ async function shutdown() {
     }
     process.exitCode = error ? 1 : 0
   } catch (error) {
-    console.error('Failed to shut down server', error)
+    logger.error({ err: error }, 'Failed to shut down server')
     process.exitCode = 1
   }
 }
