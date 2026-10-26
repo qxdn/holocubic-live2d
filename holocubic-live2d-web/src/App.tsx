@@ -1,7 +1,10 @@
 import { useRef, useState } from "react"
 import { button, folder } from "leva"
 import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport } from "ai"
+import {
+  DefaultChatTransport,
+  lastAssistantMessageIsCompleteWithToolCalls,
+} from "ai"
 import { Chat } from "@/components/chat"
 import { Live2D, motions } from "@/components/live2d"
 import type { Live2DHandle } from "@/components/live2d"
@@ -52,7 +55,44 @@ export const App = () => {
     setMessages,
     error,
     clearError,
-  } = useChat({ transport })
+    addToolOutput,
+  } = useChat({
+    transport,
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+    async onToolCall({ toolCall }) {
+      if (toolCall.toolName !== "live2d_motion") return
+
+      try {
+        const input = toolCall.input
+        if (
+          typeof input !== "object" ||
+          input === null ||
+          !("name" in input) ||
+          typeof input.name !== "string"
+        ) {
+          throw new Error("Live2D 动作参数缺少 name")
+        }
+
+        const live2d = live2dRef.current
+        if (!live2d) throw new Error("Live2D 尚未就绪")
+        const output = await live2d.playMotion(input.name)
+        // SDK 在处理工具回调时等待本函数，结果写入不能在这里 await。
+        void addToolOutput({
+          tool: "live2d_motion",
+          toolCallId: toolCall.toolCallId,
+          output,
+        })
+      } catch (cause) {
+        void addToolOutput({
+          tool: "live2d_motion",
+          toolCallId: toolCall.toolCallId,
+          state: "output-error",
+          errorText:
+            cause instanceof Error ? cause.message : "Live2D 动作播放失败",
+        })
+      }
+    },
+  })
   const busy = status === "submitted" || status === "streaming"
 
   const handleSend = (text: string) => {
