@@ -21,10 +21,6 @@ export const ErrorCodes = {
     '30104',
     '服务端工具缺少执行方法',
   ),
-  TOOL_CLIENT_EXECUTOR_UNEXPECTED: defineErrorCode(
-    '30105',
-    '客户端工具不应提供服务端执行方法',
-  ),
   // 4：未知错误；00：通用；01：未知错误。
   UNKNOWN_ERROR: defineErrorCode('40001', '未知错误'),
 } as const satisfies Record<string, ErrorCode>
