@@ -1,4 +1,8 @@
-import type { Live2dModel } from '../../models/live2d.ts'
+import type {
+  Live2dModel,
+  Live2dModelPage,
+  Live2dModelPageRequest,
+} from '../../models/live2d.ts'
 
 const models: Live2dModel[] = [
   {
@@ -64,6 +68,18 @@ const models: Live2dModel[] = [
     ],
   },
 ]
+
+/** 分页获取可用的 Live2D 模型。 */
+export function pageLive2dModels(
+  request: Live2dModelPageRequest,
+): Live2dModelPage {
+  const pageSize = request.getPageSize()
+  const offset = request.current() * pageSize
+  return {
+    data: models.slice(offset, offset + pageSize),
+    total: models.length,
+  }
+}
 
 /** 按唯一 ID 获取模型信息，未找到时返回 null。 */
 export function getLive2dModel(id: string): Live2dModel | null {

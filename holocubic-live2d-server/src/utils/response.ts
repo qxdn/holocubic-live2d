@@ -9,6 +9,7 @@ export function success<T = null>(
   c: Context,
   data: T | null = null,
   message = 'success',
+  total = 0,
 ) {
   const traceId = ensureTraceId(c)
   setTraceIdHeader(c, traceId)
@@ -17,6 +18,7 @@ export function success<T = null>(
     traceId,
     success: true,
     message,
+    total,
     data,
   }
   return c.json(body, 200)
@@ -34,6 +36,7 @@ export function fail(c: Context, error: Error) {
     message:
       error instanceof AppError ? error.message : ErrorCodes.UNKNOWN_ERROR.desc,
     data: null,
+    total: 0,
   }
   return c.json(body, 200)
 }

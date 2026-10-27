@@ -1,8 +1,33 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
-import { getLive2dModelHandler } from '../handlers/live2d.ts'
-import { live2dModelResponseSchema } from '../models/live2d.ts'
+import {
+  getLive2dModelHandler,
+  pageLive2dModelsHandler,
+} from '../handlers/live2d.ts'
+import {
+  live2dModelPageRequestSchema,
+  live2dModelPageResponseSchema,
+  live2dModelResponseSchema,
+} from '../models/live2d.ts'
 
-export const live2dRoutes = new OpenAPIHono()
+const live2dRoutes = new OpenAPIHono()
+
+// createRoute：定义路由契约
+const pageLive2dModelsRoute = createRoute({
+  method: 'get',
+  path: '/live2d/page',
+  operationId: 'pageLive2dModels',
+  tags: ['Live2D'],
+  summary: '分页获取可用的 Live2D 模型',
+  request: { query: live2dModelPageRequestSchema },
+  responses: {
+    200: {
+      description: '统一业务响应，data 为模型分页结果。',
+      content: {
+        'application/json': { schema: live2dModelPageResponseSchema },
+      },
+    },
+  },
+})
 
 const getLive2dModelRoute = createRoute({
   method: 'get',
@@ -21,5 +46,12 @@ const getLive2dModelRoute = createRoute({
   },
 })
 
+// OpenAPI：注册接口文档
+live2dRoutes.openAPIRegistry.registerPath(pageLive2dModelsRoute)
 live2dRoutes.openAPIRegistry.registerPath(getLive2dModelRoute)
+
+// Handler：关联路由与处理函数
+live2dRoutes.get('/live2d/page', pageLive2dModelsHandler)
 live2dRoutes.get('/live2d/model/:id', getLive2dModelHandler)
+
+export { live2dRoutes }
