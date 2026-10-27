@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { button, folder } from "leva"
 import { useChat } from "@ai-sdk/react"
 import {
@@ -6,22 +6,24 @@ import {
   lastAssistantMessageIsCompleteWithToolCalls,
 } from "ai"
 import { Chat } from "@/components/chat"
-import { Live2D, motions } from "@/components/live2d"
+import { Live2D, getMotions } from "@/components/live2d"
 import type { Live2DHandle } from "@/components/live2d"
 import { StoryBook, useControls } from "@/components/story-book"
 import { MoonIcon, SquarePenIcon, SparklesIcon, SunIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "@/components/theme-provider"
 
-const transport = new DefaultChatTransport({ api: "/api/chat" })
-const initialModelUrl = `${import.meta.env.BASE_URL}models/Haru/Haru.model3.json`
+const modelUrls = {
+  Haru: `${import.meta.env.BASE_URL}models/Haru/Haru.model3.json`,
+  Hiyori: `${import.meta.env.BASE_URL}models/Hiyori/Hiyori.model3.json`,
+}
 
 /** Owns page layout and chat data flow; sessions reset on page reload. */
 export const App = () => {
   const live2dRef = useRef<Live2DHandle>(null)
   const { theme, setTheme } = useTheme()
 
-  const [{ mode: storyBookMode }] = useControls(
+  const [{ mode: storyBookMode, modelUrl }] = useControls(
     () => ({
       StoryBook: folder({
         mode: {
@@ -29,6 +31,25 @@ export const App = () => {
           options: { panel: "panel", floating: "floating" } as const,
         },
       }),
+      Live2D: folder({
+        modelUrl: {
+          label: "模型",
+          value: modelUrls.Haru,
+          options: modelUrls,
+        },
+      }),
+    }),
+    []
+  )
+
+  const motions = getMotions(modelUrl)
+  const modelId = modelUrl === modelUrls.Hiyori ? "hiyori" : "haru"
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: "/api/chat", body: { modelId } }),
+    [modelId]
+  )
+  useControls(
+    () => ({
       Live2D: folder({
         motionName: {
           label: "动作名称",
@@ -42,7 +63,7 @@ export const App = () => {
         }),
       }),
     }),
-    []
+    [motions]
   )
 
   const [input, setInput] = useState("")
@@ -171,7 +192,7 @@ export const App = () => {
           aria-label="Live2D"
           className="relative hidden min-h-0 overflow-hidden border-l lg:block"
         >
-          <Live2D ref={live2dRef} modelUrl={initialModelUrl} />
+          <Live2D ref={live2dRef} modelUrl={modelUrl} />
         </aside>
       </div>
       <footer aria-label="页脚预留区域" className="h-10 shrink-0 border-t" />

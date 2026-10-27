@@ -52,3 +52,25 @@ export const motions = new Map<
     },
   ],
 ])
+
+const hiyoriMotions = new Map<
+  string,
+  { group: string; index: number; desc: string }
+>(
+  [1, 2, 3, 5, 6, 7, 8, 9, 10].map(
+    (number, index) =>
+      [
+        `Hiyori_m${String(number).padStart(2, "0")}`,
+        { group: "Idle", index, desc: `Hiyori 待机动作 ${number}` },
+      ] as const
+  )
+)
+hiyoriMotions.set("Hiyori_m04", {
+  group: "TapBody",
+  index: 0,
+  desc: "Hiyori 身体触碰反应动作，具体手势待确认。",
+})
+
+/** 按模型入口选择动作表；名称和索引对应模型文件中的动作定义。 */
+export const getMotions = (modelUrl: string) =>
+  modelUrl.endsWith("/Hiyori/Hiyori.model3.json") ? hiyoriMotions : motions

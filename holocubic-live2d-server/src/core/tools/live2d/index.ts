@@ -1,24 +1,13 @@
 import { z } from 'zod'
 import { BaseTool } from '../base-tool.ts'
-import { registerTool } from '../tool-store.ts'
-
-const inputSchema = z.object({
-  name: z
-    .enum([
-      'haru_g_idle',
-      'haru_g_m15',
-      'haru_g_m26',
-      'haru_g_m06',
-      'haru_g_m20',
-      'haru_g_m09',
-    ])
-    .describe(
-      '动作名称：haru_g_idle 为默认待机，haru_g_m15 为备用待机；haru_g_m26、haru_g_m06、haru_g_m20、haru_g_m09 为身体触碰反应，具体手势尚未确认。',
-    ),
-})
+import type { Live2dModel } from '../../../models/live2d.ts'
 
 /** 仅声明客户端动作工具，由前端调用 Live2DHandle.playMotion(name)。 */
-export class Live2dTool extends BaseTool<z.infer<typeof inputSchema>, boolean> {
+export class Live2dTool extends BaseTool<{ name: string }, boolean> {
+  constructor(private readonly model: Live2dModel) {
+    super()
+  }
+
   override getId() {
     return 'live2d_motion'
   }
@@ -32,13 +21,18 @@ export class Live2dTool extends BaseTool<z.infer<typeof inputSchema>, boolean> {
   }
 
   protected override getInputSchema() {
-    return inputSchema
+    return z.object({
+      name: z
+        .enum(this.model.motions.map((motion) => motion.name))
+        .describe(
+          `当前模型为 ${this.model.name}，不会自动切换模型。\n${this.model.motions
+            .map((motion) => `${motion.name}：${motion.desc}`)
+            .join('\n')}`,
+        ),
+    })
   }
 
   protected override getOutputSchema() {
     return z.boolean()
   }
 }
-
-export const live2dTool = new Live2dTool()
-registerTool(live2dTool)

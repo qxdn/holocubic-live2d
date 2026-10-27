@@ -14,6 +14,8 @@ function defineErrorCode(code: string, desc: string): ErrorCode {
 
 /** 通用错误码。各业务模块可按 ErrorCode 接口扩展自己的错误码。 */
 export const ErrorCodes = {
+  // 1：已知业务；01：Live2D；01：模型不存在。
+  LIVE2D_MODEL_NOT_FOUND: defineErrorCode('10101', 'Live2D 模型不存在'),
   // 2：外部错误；01：服务提供方；01：获取模型列表失败。
   PROVIDER_MODELS_FETCH_FAILED: defineErrorCode('20101', '获取模型列表失败'),
   // 3：系统报错；01：工具配置。

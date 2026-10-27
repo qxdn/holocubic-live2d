@@ -2,9 +2,9 @@ import { useEffect, useImperativeHandle, useRef, useState } from "react"
 import type { Ref } from "react"
 import { Application, Ticker } from "pixi.js"
 import { Live2DModel } from "pixi-live2d-display/cubism4"
-import { motions } from "./motions"
+import { getMotions } from "./motions"
 
-export { motions } from "./motions"
+export { getMotions } from "./motions"
 
 Live2DModel.registerTicker(Ticker)
 
@@ -15,7 +15,7 @@ type Live2DProps = {
 
 /** 客户端角色控制接口；调用成功表示动作已开始播放。 */
 export type Live2DHandle = {
-  /** 按名称播放动作；返回是否成功开始，不等待播放结束。当前名称表固定为 Haru。 */
+  /** 按当前模型的动作名称播放；返回是否成功开始，不等待播放结束。 */
   playMotion: (name: string) => Promise<boolean>
 }
 
@@ -68,18 +68,19 @@ export const Live2D = ({ modelUrl, ref }: Live2DProps) => {
       async playMotion(name) {
         const model = modelRef.current
         if (!model) throw new Error("Live2D 尚未就绪")
-        const motion = motions.get(name)
-        if (!motion) throw new Error(`未知动作：${name}`)
+        const motion = getMotions(modelUrl).get(name)
+        if (!motion) throw new Error(`当前模型不支持动作：${name}`)
         return model.motion(motion.group, motion.index)
       },
     }),
-    []
+    [modelUrl]
   )
 
   useEffect(() => {
     const container = containerRef.current!
     let app: Application | undefined
     let observer: ResizeObserver | undefined
+    let disposed = false
 
     const initialize = async () => {
       setLoading(true)
@@ -96,19 +97,25 @@ export const Live2D = ({ modelUrl, ref }: Live2DProps) => {
         const canvas = app.view as HTMLCanvasElement
         container.appendChild(canvas)
         const model = await Live2DModel.from(modelUrl, { autoInteract: true })
+        // 切换期间旧请求可能晚于新模型返回，不能再挂载到已销毁的画布。
+        if (disposed) {
+          model.destroy()
+          return
+        }
         app.stage.addChild(model)
         modelRef.current = model
         observer = observeModelResize(container, app, model)
       } catch (cause) {
-        if (!app || app.stage) {
+        if (!disposed) {
           setError(cause instanceof Error ? cause.message : "模型加载失败")
         }
       } finally {
-        if (!app || app.stage) setLoading(false)
+        if (!disposed) setLoading(false)
       }
     }
     void initialize()
     return () => {
+      disposed = true
       modelRef.current = null
       observer?.disconnect()
       app?.destroy(true, { children: true })
