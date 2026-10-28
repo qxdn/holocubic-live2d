@@ -23,6 +23,8 @@ export const ErrorCodes = {
     '30104',
     '服务端工具缺少执行方法',
   ),
+  // 3：系统报错；02：数据库配置；01：不支持的数据库类型。
+  DATABASE_TYPE_UNSUPPORTED: defineErrorCode('30201', '不支持的数据库类型'),
   // 4：未知错误；00：通用；01：未知错误。
   UNKNOWN_ERROR: defineErrorCode('40001', '未知错误'),
 } as const satisfies Record<string, ErrorCode>
