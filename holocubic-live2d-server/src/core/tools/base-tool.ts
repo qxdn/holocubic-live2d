@@ -6,8 +6,8 @@ import type {
 import type { z } from 'zod'
 import { AppError, ErrorCodes } from '../errors/index.ts'
 
-/** 客户端工具继承此类，只声明元信息，不提供服务端执行方法。 */
-export class ToolDefinition<Input = void, Output = unknown> {
+/** 客户端和服务端工具共用基类，服务端执行时提供钩子和日志。 */
+export abstract class BaseTool<Input = void, Output = unknown> {
   /** 默认使用类名；稳定的工具 ID 可由子类覆盖。 */
   getId(): string {
     return this.constructor.name
@@ -21,22 +21,11 @@ export class ToolDefinition<Input = void, Output = unknown> {
     return 'server'
   }
 
-  /** 客户端工具也可重写此方法，向模型声明所需参数。 */
-  protected getInputSchema(): z.ZodType<Input> | undefined {
-    return undefined
-  }
+  /** 工具必须声明参数 Schema，无参数时可返回 z.object({})。 */
+  protected abstract getInputSchema(): z.ZodType<Input>
 
   /** 输出校验可选；需要时由具体工具提供。 */
   protected getOutputSchema(): z.ZodType<Output> | undefined {
-    return undefined
-  }
-
-  protected getExecutor():
-    | ((
-        input: Input,
-        context: ToolExecuteContext<ToolExecutionContext>,
-      ) => Promise<Output>)
-    | undefined {
     return undefined
   }
 
@@ -44,17 +33,11 @@ export class ToolDefinition<Input = void, Output = unknown> {
     const id = this.getId()
     const description = this.getDescription()
     const execution = this.getExecution()
-    const execute = this.getExecutor()
+    const execute = execution === 'server' ? this.getExecutor() : undefined
     if (execution === 'server' && !execute) {
       throw new AppError(
         ErrorCodes.TOOL_SERVER_EXECUTOR_MISSING,
-        `${id} 服务端工具必须继承 BaseTool`,
-      )
-    }
-    if (execution === 'client' && execute) {
-      throw new AppError(
-        ErrorCodes.TOOL_CLIENT_EXECUTOR_UNEXPECTED,
-        `${id} 客户端工具应继承 ToolDefinition`,
+        `${id} 服务端工具必须实现 execute()`,
       )
     }
     return createTool({
@@ -65,15 +48,6 @@ export class ToolDefinition<Input = void, Output = unknown> {
       execute,
     })
   }
-}
-
-/** 实例只保存共享依赖，调用信息通过 Mastra 原生上下文传递。 */
-export abstract class BaseTool<
-  Input = void,
-  Output = unknown,
-> extends ToolDefinition<Input, Output> {
-  /** 服务端工具必须声明参数 Schema，无参数时可返回 z.object({})。 */
-  protected abstract override getInputSchema(): z.ZodType<Input>
 
   /** 执行前调用；抛错时停止执行，未重写时跳过。支持异步处理。 */
   protected beforeExecute?(
@@ -88,12 +62,14 @@ export abstract class BaseTool<
     context: ToolExecuteContext<ToolExecutionContext>,
   ): void | Promise<void>
 
-  protected abstract execute(
+  protected execute?(
     input: Input,
     context: ToolExecuteContext<ToolExecutionContext>,
   ): Output | Promise<Output>
 
-  protected override getExecutor() {
+  protected getExecutor() {
+    const execute = this.execute?.bind(this)
+    if (!execute) return undefined
     const id = this.getId()
     return async (
       input: Input,
@@ -110,7 +86,7 @@ export abstract class BaseTool<
       observe.log('info', 'Tool started', fields)
       try {
         await this.beforeExecute?.(input, context)
-        const result = await this.execute(input, context)
+        const result = await execute(input, context)
         await this.afterExecute?.(input, result, context)
         observe.log('info', 'Tool completed', {
           ...fields,

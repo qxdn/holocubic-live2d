@@ -21,6 +21,11 @@
           "message": {
             "type": "string"
           },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
           "data": {
             "type": ["object", "null"],
             "properties": {
@@ -29,6 +34,108 @@
               }
             },
             "required": ["greeting"]
+          }
+        },
+        "required": ["code", "traceId", "success", "message", "data"]
+      },
+      "Live2dModelPageResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Live2dModel"
+            }
+          }
+        },
+        "required": ["code", "traceId", "success", "message", "data"]
+      },
+      "Live2dModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "motions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Live2dMotion"
+            }
+          }
+        },
+        "required": ["id", "name", "url", "motions"]
+      },
+      "Live2dMotion": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "desc": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "group", "index", "desc"]
+      },
+      "Live2dModelResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "data": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Live2dModel"
+              },
+              {
+                "type": ["object", "null"]
+              }
+            ]
           }
         },
         "required": ["code", "traceId", "success", "message", "data"]
@@ -68,13 +175,17 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "modelId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
                   "messages": {
                     "type": "array",
                     "items": {},
                     "minItems": 1
                   }
                 },
-                "required": ["messages"]
+                "required": ["modelId", "messages"]
               }
             }
           }
@@ -86,6 +197,77 @@
               "text/event-stream": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/live2d/page": {
+      "get": {
+        "operationId": "pageLive2dModels",
+        "tags": ["Live2D"],
+        "summary": "分页获取可用的 Live2D 模型",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "default": 20
+            },
+            "required": false,
+            "name": "pageSize",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一业务响应，data 为模型分页结果。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Live2dModelPageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/live2d/model/{id}": {
+      "get": {
+        "operationId": "getLive2dModel",
+        "tags": ["Live2D"],
+        "summary": "按 ID 获取 Live2D 模型",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一业务响应，data 为模型信息，未找到时为 null。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Live2dModelResponse"
                 }
               }
             }

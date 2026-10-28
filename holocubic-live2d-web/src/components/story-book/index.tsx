@@ -1,6 +1,12 @@
-import { LevaPanel, type useCreateStore } from "leva"
+import {
+  Leva,
+  LevaPanel,
+  levaStore as defaultStore,
+  type useCreateStore,
+} from "leva"
 import { SlidersHorizontal } from "lucide-react"
 import type { ComponentProps } from "react"
+import { createPortal } from "react-dom"
 
 import { cn } from "@/lib/utils"
 import "./style.css"
@@ -26,49 +32,54 @@ const panelTheme: ComponentProps<typeof LevaPanel>["theme"] = {
     toolTipText: "var(--popover-foreground)",
   },
   fonts: { sans: "var(--font-sans)", mono: "var(--font-sans)" },
+  space: { rowGap: "12px" },
+  sizes: { rowHeight: "32px" },
   radii: { xs: "var(--radius)", sm: "var(--radius)", lg: "var(--radius)" },
   shadows: {
     level1: "inset 0 0 0 1px var(--border)",
   },
 }
 
-/** 预览容器配置；levaStore 必须与 useControls 使用同一个独立 store。 */
+/** 默认展示 useControls 注册的全局控件；也可传入独立 store。 */
 export type StoryBookProps = ComponentProps<"div"> & {
-  levaStore: ReturnType<typeof useCreateStore>
-  noPadding?: boolean
+  /** 面板标题；不传时不显示自定义标题栏。 */
+  title?: string
+  levaStore?: ReturnType<typeof useCreateStore>
+  /** panel 嵌入父容器；floating 使用带拖动标题栏的浮窗。 */
+  mode?: "panel" | "floating"
 }
 
-/** 基于 Lobe UI StoryBook 的预览与 Leva 面板布局，窄屏时面板移至底部。 */
+/** 全局调试面板；各组件通过 useControls(模块名, schema) 注册分组。 */
 export const StoryBook = ({
-  levaStore,
-  noPadding = false,
+  levaStore = defaultStore,
+  mode = "panel",
+  title,
   className,
-  children,
   ...rest
-}: StoryBookProps) => (
-  <div
-    className={cn(
-      "flex min-h-80 w-full min-w-0 flex-col overflow-hidden rounded-xl border md:flex-row",
-      className
-    )}
-    {...rest}
-  >
+}: StoryBookProps) => {
+  if (mode === "floating") {
+    return createPortal(
+      <div className={cn("story-book-panel", className)} {...rest}>
+        <Leva hidden />
+        <LevaPanel store={levaStore} theme={panelTheme} hideCopyButton />
+      </div>,
+      document.body
+    )
+  }
+
+  return (
     <div
-      className={cn(
-        "relative flex min-h-80 min-w-0 flex-1 items-center justify-center overflow-auto",
-        !noPadding && "px-6 py-10"
+      className={cn("story-book-panel", "w-full min-w-0 bg-card", className)}
+      {...rest}
+    >
+      {/* 接管全局面板，阻止 useControls 自动创建浮动窗口。 */}
+      <Leva hidden />
+      {title && (
+        <div className="flex items-center gap-2 border-b px-4 py-3 text-xs font-medium text-muted-foreground">
+          <SlidersHorizontal aria-hidden="true" className="size-3.5" />
+          {title}
+        </div>
       )}
-    >
-      {children}
-    </div>
-    <aside
-      aria-label="组件参数"
-      className="story-book-panel w-full shrink-0 border-t bg-card md:w-72 md:border-t-0 md:border-l"
-    >
-      <div className="flex items-center gap-2 border-b px-4 py-3 text-xs font-medium text-muted-foreground">
-        <SlidersHorizontal aria-hidden="true" className="size-3.5" />
-        Controls
-      </div>
       <LevaPanel
         fill
         flat
@@ -77,6 +88,6 @@ export const StoryBook = ({
         theme={panelTheme}
         hideCopyButton
       />
-    </aside>
-  </div>
-)
+    </div>
+  )
+}

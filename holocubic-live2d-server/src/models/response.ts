@@ -9,6 +9,8 @@ export const baseResponseSchema = z.object({
   /** 请求是否成功。 */
   success: z.boolean(),
   message: z.string(),
+  /** 分页查询的总条数，其他响应默认为 0。 */
+  total: z.number().int().nonnegative().default(0),
   /** 无返回数据或请求失败时使用 null。 */
   data: z.unknown().nullable(),
 })
