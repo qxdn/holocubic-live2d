@@ -1,3 +1,4 @@
+import type { ServiceContext } from '../context.ts'
 import { Agent } from '@mastra/core/agent'
 import { AnthropicProvider } from '../models/anthropic-provider.ts'
 import { createModel } from './model.ts'
@@ -9,9 +10,12 @@ import { AppError, ErrorCodes } from '../errors/index.ts'
 export const testAgent = new Agent({
   id: 'test-agent',
   name: 'Test Agent',
-  tools: ({ requestContext }) => {
-    const modelId = requestContext.get('modelId')
-    const model = typeof modelId === 'string' ? getLive2dModel(modelId) : null
+  tools: async ({ requestContext }) => {
+    const modelId = requestContext.get<'modelId', string>('modelId')
+    const context = requestContext.get<'serviceContext', ServiceContext>(
+      'serviceContext',
+    )
+    const model = await getLive2dModel(context, modelId)
     if (!model) throw new AppError(ErrorCodes.LIVE2D_MODEL_NOT_FOUND)
     const live2dTool = new Live2dTool(model)
     return {

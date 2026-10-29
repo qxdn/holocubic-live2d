@@ -94,18 +94,11 @@
           "name": {
             "type": "string"
           },
-          "group": {
-            "type": "string"
-          },
-          "index": {
-            "type": "integer",
-            "minimum": 0
-          },
           "desc": {
             "type": "string"
           }
         },
-        "required": ["name", "group", "index", "desc"]
+        "required": ["name", "desc"]
       },
       "Live2dModelResponse": {
         "type": "object",

@@ -1,87 +1,79 @@
+import type { Live2dModelRecord, Live2dMotionRecord } from '../db/index.ts'
 import type {
   Live2dModel,
   Live2dModelPage,
   Live2dModelPageRequest,
 } from '../../models/live2d.ts'
 
-const models: Live2dModel[] = [
-  {
-    id: 'haru',
-    name: 'Haru',
-    url: '/models/Haru/Haru.model3.json',
-    motions: [
-      {
-        name: 'haru_g_idle',
-        group: 'Idle',
-        index: 0,
-        desc: '默认待机动作，用于角色空闲时的自然表现。',
-      },
-      {
-        name: 'haru_g_m15',
-        group: 'Idle',
-        index: 1,
-        desc: '备用待机动作，用于角色空闲时变化姿态。',
-      },
-      {
-        name: 'haru_g_m26',
-        group: 'TapBody',
-        index: 0,
-        desc: '身体触碰反应动作 m26；具体手势待确认。',
-      },
-      {
-        name: 'haru_g_m06',
-        group: 'TapBody',
-        index: 1,
-        desc: '身体触碰反应动作 m06；具体手势待确认。',
-      },
-      {
-        name: 'haru_g_m20',
-        group: 'TapBody',
-        index: 2,
-        desc: '身体触碰反应动作 m20；具体手势待确认。',
-      },
-      {
-        name: 'haru_g_m09',
-        group: 'TapBody',
-        index: 3,
-        desc: '身体触碰反应动作 m09；具体手势待确认。',
-      },
-    ],
-  },
-  {
-    id: 'hiyori',
-    name: 'Hiyori',
-    url: '/models/Hiyori/Hiyori.model3.json',
-    motions: [
-      ...[1, 2, 3, 5, 6, 7, 8, 9, 10].map((number, index) => ({
-        name: `Hiyori_m${String(number).padStart(2, '0')}`,
-        group: 'Idle',
-        index,
-        desc: `Hiyori 待机动作 ${number}`,
-      })),
-      {
-        name: 'Hiyori_m04',
-        group: 'TapBody',
-        index: 0,
-        desc: 'Hiyori 身体触碰反应动作，具体手势待确认。',
-      },
-    ],
-  },
-]
+import type { ServiceContext } from '../context.ts'
 
-/** 分页获取可用的 Live2D 模型。 */
-export function pageLive2dModels(
-  request: Live2dModelPageRequest,
-): Live2dModelPage {
-  const pageSize = request.getPageSize()
-  const offset = request.current() * pageSize
+// -------------------- 私有函数 --------------------
+
+/** 从数据库记录组装模型及动作名称、描述。 */
+function toModel(
+  record: Live2dModelRecord,
+  motions: Live2dMotionRecord[],
+): Live2dModel {
   return {
-    data: models.slice(offset, offset + pageSize),
-    total: models.length,
+    id: record.id,
+    name: record.name,
+    url: record.url,
+    motions: motions.map((motion) => ({
+      name: motion.name,
+      desc: motion.description,
+    })),
   }
 }
 
-/** 按唯一 ID 获取模型信息，未找到时返回 null。 */
-export function getLive2dModel(id: string): Live2dModel | null {
-  return models.find((model) => model.id === id) ?? null
+// -------------------- 对外导出 --------------------
+
+/** 分页查询 Live2D 模型及其动作信息。 */
+export async function pageLive2dModels(
+  context: ServiceContext,
+  request: Live2dModelPageRequest,
+): Promise<Live2dModelPage> {
+  // current() 将从 1 开始的页码转为从 0 开始的页索引，用于计算 SQL 偏移量。
+  const options = {
+    offset: request.current() * request.getPageSize(),
+    limit: request.getPageSize(),
+  }
+  const repositories = context.getRepositories()
+  const executor = context.getExecutor()
+  // 查询当前页的模型；total 为所有模型的数量，不受分页限制。
+  const records = await repositories.live2dModels.page(executor, options)
+  const total = await repositories.live2dModels.count(executor, options)
+  // 一次查出当前页所有模型的动作，避免每个模型各发起一次查询。
+  // 空页传入空 ID 数组，Repository 直接返回空数组，不执行 SQL。
+  const motions = await repositories.live2dMotions.findByModelIds(
+    executor,
+    records.map((record) => record.id),
+  )
+  // 在内存中按 modelId 分组，组装时直接查找，避免反复遍历全部动作。
+  const motionsByModelId = new Map<string, Live2dMotionRecord[]>()
+  for (const motion of motions) {
+    const group = motionsByModelId.get(motion.modelId)
+    if (group) group.push(motion)
+    else motionsByModelId.set(motion.modelId, [motion])
+  }
+  // 保持模型分页查询的顺序，没有动作的模型返回 motions: []。
+  const data = records.map((record) =>
+    toModel(record, motionsByModelId.get(record.id) ?? []),
+  )
+  return { data, total }
+}
+
+/** 根据 ID 查询 Live2D 模型，不存在时返回 null。 */
+export async function getLive2dModel(
+  context: ServiceContext,
+  id: string,
+): Promise<Live2dModel | null> {
+  const repositories = context.getRepositories()
+  const executor = context.getExecutor()
+  const record = await repositories.live2dModels.findById(executor, id)
+  if (!record) return null
+  const motions = await repositories.live2dMotions.findByModelId(
+    executor,
+    record.id,
+  )
+  return toModel(record, motions)
 }

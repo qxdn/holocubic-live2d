@@ -2,12 +2,10 @@ import { z } from '@hono/zod-openapi'
 import { baseResponseSchema } from './response.ts'
 import { PageRequest, pageRequestSchema } from './page-request.ts'
 
-/** 模型支持的动作，group 和 index 对应模型入口文件中的动作位置。 */
+/** 模型支持的动作名称和描述，播放位置由客户端解析。 */
 export const live2dMotionSchema = z
   .object({
     name: z.string(),
-    group: z.string(),
-    index: z.number().int().nonnegative(),
     desc: z.string(),
   })
   .openapi('Live2dMotion')
