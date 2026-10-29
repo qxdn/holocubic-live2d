@@ -7,6 +7,21 @@ pnpm dev
 
 API: `http://localhost:3000/api`.
 
+## 日志
+
+服务端业务日志使用 Pino，统一从 `src/core/logger/index.ts` 导入 `logger`。
+日志以 JSON 输出到控制台和当前工作目录下的 `logs/app.log`；
+`error`、`fatal` 还会同时写入 `logs/error.log`。日志目录自动创建且已被 Git 忽略。
+默认最低级别为 `info`，文件追加写入，暂未配置日志轮转。
+
+```ts
+logger.info({ traceId }, 'Request completed')
+logger.error({ traceId, err: error }, 'Request failed')
+```
+
+错误放在 `err` 字段，保留错误类型、消息和堆栈。请求和聊天流错误继续附带 `traceId`。
+Mastra 内部日志仍使用其自身默认 logger，OpenAPI 生成脚本保留控制台输出。
+
 ## OpenAPI 文档
 
 在后端目录运行以下命令，直接生成 `openapi.json`，无需启动服务或配置 `.env`：

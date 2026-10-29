@@ -5,6 +5,7 @@ import { createUIMessageStreamResponse, validateUIMessages } from 'ai'
 import type { Handler } from 'hono'
 import { getLive2dModel } from '../core/services/live2d.ts'
 import { AppError, ErrorCodes } from '../core/errors/index.ts'
+import { logger } from '../core/logger/index.ts'
 import { mastra } from '../core/mastra/index.ts'
 import { ensureTraceId, getServiceContext } from '../middleware/request-context.ts'
 import { chatRequestSchema } from '../models/chat.ts'
@@ -34,15 +35,18 @@ export const chatHandler: Handler = async (c) => {
     sendReasoning: true,
     onError: (error) => {
       if (error instanceof AppError) {
-        console.error('Agent stream business error', {
-          traceId,
-          code: error.code,
-          error,
-        })
+        logger.error(
+          {
+            traceId,
+            code: error.code,
+            err: error,
+          },
+          'Agent stream business error',
+        )
         return error.message
       }
 
-      console.error('Agent stream unexpected error', { traceId, error })
+      logger.error({ traceId, err: error }, 'Agent stream unexpected error')
       return ErrorCodes.UNKNOWN_ERROR.desc
     },
   })
