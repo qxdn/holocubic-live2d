@@ -6,38 +6,6 @@
   },
   "components": {
     "schemas": {
-      "GreetingResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          },
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          },
-          "total": {
-            "type": "integer",
-            "minimum": 0,
-            "default": 0
-          },
-          "data": {
-            "type": ["object", "null"],
-            "properties": {
-              "greeting": {
-                "type": "string"
-              }
-            },
-            "required": ["greeting"]
-          }
-        },
-        "required": ["code", "traceId", "success", "message", "data"]
-      },
       "Live2dModelPageResponse": {
         "type": "object",
         "properties": {
@@ -137,25 +105,6 @@
     "parameters": {}
   },
   "paths": {
-    "/api": {
-      "get": {
-        "operationId": "getGreeting",
-        "tags": ["Greeting"],
-        "summary": "获取服务问候信息",
-        "responses": {
-          "200": {
-            "description": "统一业务响应，success 表示业务是否成功。",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GreetingResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/chat": {
       "post": {
         "operationId": "chat",

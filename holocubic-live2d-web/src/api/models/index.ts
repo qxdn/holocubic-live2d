@@ -5,8 +5,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export * from "./greetingResponse"
-export * from "./greetingResponseData"
 export * from "./live2dModel"
 export * from "./live2dModelPageResponse"
 export * from "./live2dModelResponse"

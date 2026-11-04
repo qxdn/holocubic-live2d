@@ -24,25 +24,7 @@ This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
 生成 React Query hooks、请求函数和类型到 `src/api/generated.ts` 和 `src/api/models/`，
 请勿手动修改这些文件。应用入口已注册 `QueryClientProvider`。
 
-```tsx
-import { useGetGreeting } from '@/api/generated'
-
-function Greeting() {
-  const { data, isPending, isFetching, error, refetch } = useGetGreeting()
-
-  if (isPending) return <p>加载中…</p>
-  if (error) return <button onClick={() => void refetch()}>重试</button>
-
-  return (
-    <div>
-      <p>{data?.greeting}</p>
-      <button disabled={isFetching} onClick={() => void refetch()}>刷新</button>
-    </div>
-  )
-}
-```
-
-普通业务 GET 接口生成查询 hooks（如 `useGetGreeting`），POST 接口生成提交 hooks。
+普通业务 GET 接口生成查询 hooks，POST 接口生成提交 hooks。
 hooks 支持通过 `query` / `mutation` 选项覆盖行为，通过 `request` 选项传入 Fetch 的
 `RequestInit` 配置。标记为 `AI` 的接口暂不生成请求，后续单独接入 AI SDK。
 
