@@ -18,22 +18,24 @@ const dbConfigSchema = z.object({
 })
 
 const speechProviderConfigSchema = z.object({
-  type: z.literal('volcengine'),
-  options: z.object({
-    apiKey: z.string().trim().min(1),
-    resourceId: z.string().trim().min(1).optional(),
-    endpoint: z.url({ protocol: /^wss$/ }).optional(),
-  }),
+  type: z.literal('volcengine').default('volcengine'),
+  options: z
+    .object({
+      apiKey: z.string().trim().min(1).prefault(''),
+      resourceId: z.string().trim().min(1).optional(),
+      endpoint: z.url({ protocol: /^wss$/ }).optional(),
+    })
+    .prefault({}),
 })
 
 const speechConfigSchema = z.object({
-  asr: speechProviderConfigSchema.optional(),
+  asr: speechProviderConfigSchema.prefault({}),
 })
 
 const configSchema = z.object({
   web: webConfigSchema.prefault({}),
   db: dbConfigSchema.prefault({}),
-  speech: speechConfigSchema.optional(),
+  speech: speechConfigSchema.prefault({}),
 })
 
 // -------------------- 私有函数 --------------------

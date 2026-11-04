@@ -11,9 +11,11 @@ import { logger } from './core/logger/index.ts'
 import { registerMiddleware } from './middleware/index.ts'
 import { registerRoutes } from './routes/index.ts'
 import { load_config } from './config/index.ts'
+import { initARS } from './core/services/speech/index.ts'
 
 const config = load_config()
 const db = openDatabase(config.db)
+initARS(config.speech.asr)
 
 const app = new OpenAPIHono<AppEnv>()
 registerMiddleware(app, db.database)

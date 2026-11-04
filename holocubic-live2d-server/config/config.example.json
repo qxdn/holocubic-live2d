@@ -11,7 +11,7 @@
       "options": {
         "apiKey": "your-volcengine-speech-api-key",
         "resourceId": "volc.seedasr.sauc.duration",
-        "endpoint": "wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async"
+        "endpoint": "wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_nostream"
       }
     }
   }

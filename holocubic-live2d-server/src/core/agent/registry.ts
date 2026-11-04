@@ -3,9 +3,10 @@ import { mastra } from '../mastra/index.ts'
 import { AppError } from '../errors/app-error.ts'
 import { ErrorCodes } from '../errors/error-code.ts'
 
-/** Agent 只配置识别语言；供应商由服务端入口选择。 */
+/** Agent 指定供应商和识别语言；供应商凭据由服务端配置。 */
 export interface AgentSpeechConfig {
   readonly asr?: {
+    readonly provider: string
     readonly language: string
   }
 }

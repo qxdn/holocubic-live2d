@@ -100,6 +100,38 @@
           }
         },
         "required": ["code", "traceId", "success", "message", "data"]
+      },
+      "AsrResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "data": {
+            "type": ["object", "null"],
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": ["text"]
+          }
+        },
+        "required": ["code", "traceId", "success", "message", "data"]
       }
     },
     "parameters": {}
@@ -214,6 +246,48 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Live2dModelResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/speech/asr": {
+      "post": {
+        "operationId": "transcribeAudio",
+        "tags": ["Speech"],
+        "summary": "提交完整 PCM 音频并返回识别文本",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "agentId",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "description": "16 kHz、单声道、16-bit 小端裸 PCM，不含 WAV 文件头。"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "统一业务响应，data.text 为最终文本；失败时返回统一业务错误。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsrResponse"
                 }
               }
             }

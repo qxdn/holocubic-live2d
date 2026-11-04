@@ -14,6 +14,7 @@ function defineErrorCode(code: string, desc: string): ErrorCode {
 
 /** 通用错误码。各业务模块可按 ErrorCode 接口扩展自己的错误码。 */
 export const ErrorCodes = {
+  ILLEGAL_PARAM: defineErrorCode('10001', '请求参数不合法'),
   // 1：已知业务；01：Live2D；01：模型不存在。
   LIVE2D_MODEL_NOT_FOUND: defineErrorCode('10101', 'Live2D 模型不存在'),
   SPEECH_PROTOCOL_INVALID: defineErrorCode('10201', '语音识别协议错误'),
@@ -31,6 +32,10 @@ export const ErrorCodes = {
   // 3：系统报错；02：数据库配置；01：不支持的数据库类型。
   DATABASE_TYPE_UNSUPPORTED: defineErrorCode('30201', '不支持的数据库类型'),
   SPEECH_PROVIDER_NOT_FOUND: defineErrorCode('30301', '语音识别供应商未配置'),
+  SPEECH_PROVIDER_CONFIG_INVALID: defineErrorCode(
+    '30302',
+    '语音识别供应商配置无效',
+  ),
   // 4：未知错误；00：通用；01：未知错误。
   UNKNOWN_ERROR: defineErrorCode('40001', '未知错误'),
 } as const satisfies Record<string, ErrorCode>

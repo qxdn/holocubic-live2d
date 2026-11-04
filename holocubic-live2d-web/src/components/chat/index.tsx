@@ -1,4 +1,5 @@
 import { ChatMessage } from "@/components/chat/message"
+import { SpeechInput } from "@/components/chat/speech-input"
 import { ChatEmptyState } from "@/components/chat/empty-state"
 import type { ChatStatus, UIMessage } from "ai"
 import { SparklesIcon } from "lucide-react"
@@ -17,6 +18,7 @@ import {
 } from "@/components/ai-elements/prompt-input"
 
 type ChatProps = {
+  agentId: string
   messages: UIMessage[]
   status: ChatStatus
   error?: Error
@@ -29,6 +31,7 @@ type ChatProps = {
 
 /** Renders the chat UI using state and actions provided by the parent. */
 export const Chat = ({
+  agentId,
   messages,
   status,
   error,
@@ -104,10 +107,14 @@ export const Chat = ({
               disabled={busy}
             />
           </PromptInputBody>
-          <PromptInputFooter>
-            <span className="px-2 text-xs text-muted-foreground">
-              Enter 发送 · Shift + Enter 换行
-            </span>
+          <PromptInputFooter className="justify-end">
+            <SpeechInput
+              agentId={agentId}
+              disabled={busy}
+              onTranscript={(text) =>
+                onInputChange(input ? `${input} ${text}` : text)
+              }
+            />
             <PromptInputSubmit
               status={status}
               onStop={onStop}

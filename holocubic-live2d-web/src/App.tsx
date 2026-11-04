@@ -18,6 +18,8 @@ const modelUrls = {
   Hiyori: `${import.meta.env.BASE_URL}models/Hiyori/Hiyori.model3.json`,
 }
 
+const agentId = "testAgent"
+
 /** Owns page layout and chat data flow; sessions reset on page reload. */
 export const App = () => {
   const live2dRef = useRef<Live2DHandle>(null)
@@ -48,7 +50,7 @@ export const App = () => {
     () =>
       new DefaultChatTransport({
         api: "/api/chat",
-        body: { agentId: "testAgent", modelId },
+        body: { agentId, modelId },
       }),
     [modelId]
   )
@@ -180,6 +182,7 @@ export const App = () => {
           className="flex min-h-0 min-w-0 flex-col overflow-hidden"
         >
           <Chat
+            agentId={agentId}
             messages={messages}
             status={status}
             error={error}
