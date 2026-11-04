@@ -45,7 +45,11 @@ export const App = () => {
   const motions = getMotions(modelUrl)
   const modelId = modelUrl === modelUrls.Hiyori ? "hiyori" : "haru"
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: "/api/chat", body: { modelId } }),
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        body: { agentId: "testAgent", modelId },
+      }),
     [modelId]
   )
   useControls(

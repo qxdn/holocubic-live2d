@@ -17,9 +17,23 @@ const dbConfigSchema = z.object({
     .default('file:../data.db'),
 })
 
+const speechProviderConfigSchema = z.object({
+  type: z.literal('volcengine'),
+  options: z.object({
+    apiKey: z.string().trim().min(1),
+    resourceId: z.string().trim().min(1).optional(),
+    endpoint: z.url({ protocol: /^wss$/ }).optional(),
+  }),
+})
+
+const speechConfigSchema = z.object({
+  asr: speechProviderConfigSchema.optional(),
+})
+
 const configSchema = z.object({
   web: webConfigSchema.prefault({}),
   db: dbConfigSchema.prefault({}),
+  speech: speechConfigSchema.optional(),
 })
 
 // -------------------- 私有函数 --------------------
@@ -32,6 +46,7 @@ function readConfig(path: string): unknown {
 
 export type WebConfig = z.infer<typeof webConfigSchema>
 export type DbConfig = z.infer<typeof dbConfigSchema>
+export type SpeechConfig = z.infer<typeof speechConfigSchema>
 export type Config = z.infer<typeof configSchema>
 
 /** 读取配置文件，相对路径基于当前工作目录。 */

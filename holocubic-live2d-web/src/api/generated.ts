@@ -17,7 +17,12 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query"
 
-import type { GreetingResponse } from "./models"
+import type {
+  GreetingResponse,
+  Live2dModelPageResponse,
+  Live2dModelResponse,
+  PageLive2dModelsParams,
+} from "./models"
 
 import { request } from "./request"
 import type { ErrorType } from "./request"
@@ -165,6 +170,331 @@ export function useGetGreeting<
   queryKey: DataTag<QueryKey, TData, TError>
 } {
   const queryOptions = getGetGreetingQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+export const getPageLive2dModelsUrl = (params?: PageLive2dModelsParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/live2d/page?${stringifiedParams}`
+    : `/api/live2d/page`
+}
+
+/**
+ * @summary 分页获取可用的 Live2D 模型
+ */
+export const pageLive2dModels = (
+  params?: PageLive2dModelsParams,
+  options?: Parameters<typeof request>[1]
+) => {
+  return request<Live2dModelPageResponse>(getPageLive2dModelsUrl(params), {
+    ...options,
+    method: "GET",
+  })
+}
+
+export const getPageLive2dModelsQueryKey = (
+  params?: PageLive2dModelsParams
+) => {
+  return [`/api/live2d/page`, ...(params ? [params] : [])] as const
+}
+
+export const getPageLive2dModelsQueryOptions = <
+  TData = Awaited<ReturnType<typeof pageLive2dModels>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: PageLive2dModelsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof pageLive2dModels>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof request>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getPageLive2dModelsQueryKey(params)
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof pageLive2dModels>>
+  > = ({ signal }) => pageLive2dModels(params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof pageLive2dModels>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PageLive2dModelsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof pageLive2dModels>>
+>
+export type PageLive2dModelsQueryError = ErrorType<unknown>
+
+export function usePageLive2dModels<
+  TData = Awaited<ReturnType<typeof pageLive2dModels>>,
+  TError = ErrorType<unknown>,
+>(
+  params: undefined | PageLive2dModelsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof pageLive2dModels>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pageLive2dModels>>,
+          TError,
+          Awaited<ReturnType<typeof pageLive2dModels>>
+        >,
+        "initialData"
+      >
+    request?: SecondParameter<typeof request>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function usePageLive2dModels<
+  TData = Awaited<ReturnType<typeof pageLive2dModels>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: PageLive2dModelsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof pageLive2dModels>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof pageLive2dModels>>,
+          TError,
+          Awaited<ReturnType<typeof pageLive2dModels>>
+        >,
+        "initialData"
+      >
+    request?: SecondParameter<typeof request>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function usePageLive2dModels<
+  TData = Awaited<ReturnType<typeof pageLive2dModels>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: PageLive2dModelsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof pageLive2dModels>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof request>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+/**
+ * @summary 分页获取可用的 Live2D 模型
+ */
+
+export function usePageLive2dModels<
+  TData = Awaited<ReturnType<typeof pageLive2dModels>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: PageLive2dModelsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof pageLive2dModels>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof request>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
+  const queryOptions = getPageLive2dModelsQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+export const getGetLive2dModelUrl = (id: string) => {
+  return `/api/live2d/model/${id}`
+}
+
+/**
+ * @summary 按 ID 获取 Live2D 模型
+ */
+export const getLive2dModel = (
+  id: string,
+  options?: Parameters<typeof request>[1]
+) => {
+  return request<Live2dModelResponse>(getGetLive2dModelUrl(id), {
+    ...options,
+    method: "GET",
+  })
+}
+
+export const getGetLive2dModelQueryKey = (id: string) => {
+  return [`/api/live2d/model/${id}`] as const
+}
+
+export const getGetLive2dModelQueryOptions = <
+  TData = Awaited<ReturnType<typeof getLive2dModel>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getLive2dModel>>, TError, TData>
+    >
+    request?: SecondParameter<typeof request>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetLive2dModelQueryKey(id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getLive2dModel>>> = ({
+    signal,
+  }) => getLive2dModel(id, { signal, ...requestOptions })
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getLive2dModel>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLive2dModelQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getLive2dModel>>
+>
+export type GetLive2dModelQueryError = ErrorType<unknown>
+
+export function useGetLive2dModel<
+  TData = Awaited<ReturnType<typeof getLive2dModel>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getLive2dModel>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLive2dModel>>,
+          TError,
+          Awaited<ReturnType<typeof getLive2dModel>>
+        >,
+        "initialData"
+      >
+    request?: SecondParameter<typeof request>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetLive2dModel<
+  TData = Awaited<ReturnType<typeof getLive2dModel>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getLive2dModel>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLive2dModel>>,
+          TError,
+          Awaited<ReturnType<typeof getLive2dModel>>
+        >,
+        "initialData"
+      >
+    request?: SecondParameter<typeof request>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetLive2dModel<
+  TData = Awaited<ReturnType<typeof getLive2dModel>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getLive2dModel>>, TError, TData>
+    >
+    request?: SecondParameter<typeof request>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+/**
+ * @summary 按 ID 获取 Live2D 模型
+ */
+
+export function useGetLive2dModel<
+  TData = Awaited<ReturnType<typeof getLive2dModel>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getLive2dModel>>, TError, TData>
+    >
+    request?: SecondParameter<typeof request>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
+  const queryOptions = getGetLive2dModelQueryOptions(id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

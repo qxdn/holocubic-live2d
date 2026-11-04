@@ -9,7 +9,7 @@ const chatRoute = createRoute({
   path: '/chat',
   operationId: 'chat',
   tags: ['Chat'],
-  summary: '与测试 Agent 对话，返回 AI SDK UI message 流',
+  summary: '与指定 Agent 对话，返回 AI SDK UI message 流',
   request: {
     body: {
       required: true,

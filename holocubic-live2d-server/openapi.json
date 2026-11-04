@@ -160,7 +160,7 @@
       "post": {
         "operationId": "chat",
         "tags": ["Chat"],
-        "summary": "与测试 Agent 对话，返回 AI SDK UI message 流",
+        "summary": "与指定 Agent 对话，返回 AI SDK UI message 流",
         "requestBody": {
           "required": true,
           "content": {
@@ -168,6 +168,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "agentId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
                   "modelId": {
                     "type": "string",
                     "minLength": 1
@@ -178,7 +182,7 @@
                     "minItems": 1
                   }
                 },
-                "required": ["modelId", "messages"]
+                "required": ["agentId", "modelId", "messages"]
               }
             }
           }

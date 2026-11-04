@@ -1,0 +1,18 @@
+{
+  "web": {
+    "port": 3000
+  },
+  "db": {
+    "url": "file:../data.db"
+  },
+  "speech": {
+    "asr": {
+      "type": "volcengine",
+      "options": {
+        "apiKey": "your-volcengine-speech-api-key",
+        "resourceId": "volc.seedasr.sauc.duration",
+        "endpoint": "wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async"
+      }
+    }
+  }
+}

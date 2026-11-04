@@ -7,12 +7,17 @@ import { getLive2dModel } from '../core/services/live2d.ts'
 import { AppError, ErrorCodes } from '../core/errors/index.ts'
 import { logger } from '../core/logger/index.ts'
 import { mastra } from '../core/mastra/index.ts'
-import { ensureTraceId, getServiceContext } from '../middleware/request-context.ts'
+import { getAgentDefinition } from '../core/agent/registry.ts'
+import {
+  ensureTraceId,
+  getServiceContext,
+} from '../middleware/request-context.ts'
 import { chatRequestSchema } from '../models/chat.ts'
 
-/** 将测试 Agent 的输出转换为 AI SDK UI message SSE 响应。 */
+/** 按注册 ID 选择 Agent，将输出转换为 AI SDK UI message SSE 响应。 */
 export const chatHandler: Handler = async (c) => {
   const body = chatRequestSchema.parse(await c.req.json())
+  const definition = getAgentDefinition(body.agentId)
   const serviceContext = getServiceContext(c)
   if (!(await getLive2dModel(serviceContext, body.modelId))) {
     throw new AppError(ErrorCodes.LIVE2D_MODEL_NOT_FOUND)
@@ -29,7 +34,7 @@ export const chatHandler: Handler = async (c) => {
   requestContext.set('serviceContext', serviceContext)
   const stream = await handleChatStream({
     mastra,
-    agentId: 'testAgent',
+    agentId: definition.id,
     version: 'v7',
     params: { messages, requestContext },
     sendReasoning: true,

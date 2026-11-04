@@ -3,3 +3,4 @@ dist/
 .env
 !.env.example
 /data.db
+/holocubic-live2d-server/config/config.json

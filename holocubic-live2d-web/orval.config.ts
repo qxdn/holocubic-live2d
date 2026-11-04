@@ -4,7 +4,7 @@ export default defineConfig({
   api: {
     input: {
       target: "../holocubic-live2d-server/openapi.json",
-      filters: { mode: "exclude", tags: ["AI"] },
+      filters: { mode: "exclude", tags: ["AI", "Chat"] },
     },
     output: {
       target: "./src/api/generated.ts",

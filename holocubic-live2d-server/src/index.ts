@@ -1,10 +1,11 @@
 // Telemetry 必须在 Hono 创建 tracer 和 meter 前初始化。
 import { shutdownTelemetry } from './telemetry.ts'
+import './core/agent/index.ts'
 import { openDatabase } from './core/db/index.ts'
 import { serve } from '@hono/node-server'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { MastraServer } from '@mastra/hono'
-import type { HonoBindings, HonoVariables } from '@mastra/hono'
+import type { AppEnv } from './env.ts'
 import { mastra } from './core/mastra/index.ts'
 import { logger } from './core/logger/index.ts'
 import { registerMiddleware } from './middleware/index.ts'
@@ -14,10 +15,7 @@ import { load_config } from './config/index.ts'
 const config = load_config()
 const db = openDatabase(config.db)
 
-const app = new OpenAPIHono<{
-  Bindings: HonoBindings
-  Variables: HonoVariables
-}>()
+const app = new OpenAPIHono<AppEnv>()
 registerMiddleware(app, db.database)
 registerRoutes(app)
 

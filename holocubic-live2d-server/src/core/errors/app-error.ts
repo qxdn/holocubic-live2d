@@ -4,16 +4,18 @@ import type { ErrorCode } from './error-code.ts'
 export class AppError extends Error {
   readonly code: string
   readonly desc: string
+  readonly retryable: boolean
 
   constructor(
     errorCode: ErrorCode,
     message?: string | null,
-    options?: ErrorOptions,
+    options?: ErrorOptions & { readonly retryable?: boolean },
   ) {
     super(message || errorCode.desc, options)
     this.name = new.target.name
     this.code = errorCode.code
     this.desc = errorCode.desc
+    this.retryable = options?.retryable ?? false
     Error.captureStackTrace(this, new.target)
   }
 }

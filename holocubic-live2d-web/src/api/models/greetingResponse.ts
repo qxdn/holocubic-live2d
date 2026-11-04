@@ -11,6 +11,8 @@ export interface GreetingResponse {
   traceId: string
   success: boolean
   message: string
+  /** @minimum 0 */
+  total?: number
   /** @nullable */
   data: GreetingResponseData
 }

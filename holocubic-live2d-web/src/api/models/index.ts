@@ -7,3 +7,9 @@
 
 export * from "./greetingResponse"
 export * from "./greetingResponseData"
+export * from "./live2dModel"
+export * from "./live2dModelPageResponse"
+export * from "./live2dModelResponse"
+export * from "./live2dModelResponseData"
+export * from "./live2dMotion"
+export * from "./pageLive2dModelsParams"
