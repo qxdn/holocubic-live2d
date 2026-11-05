@@ -9,7 +9,7 @@ type ProcessProps = {
   status?: string
 }
 
-/** Shared collapsible presentation for reasoning and tool steps. */
+/** Displays a tool step with details collapsed until the user expands them. */
 export const ChatProcessStep = ({
   title,
   active,
@@ -17,7 +17,7 @@ export const ChatProcessStep = ({
   children,
   status,
 }: ProcessProps) => {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   return (
     <div className="relative min-w-0 pb-5 pl-7 before:absolute before:top-7 before:bottom-0 before:left-2 before:border-l before:border-dashed before:border-border">
       <button

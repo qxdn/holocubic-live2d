@@ -1,0 +1,112 @@
+/* Keep answer typography scoped so reasoning retains its quieter presentation. */
+.chat-markdown {
+  min-width: 0;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.chat-markdown > * + * {
+  margin-top: 1rem;
+}
+
+.chat-markdown :is(h1, h2, h3, h4, h5, h6) {
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.chat-markdown h1 { font-size: 1.5em; }
+.chat-markdown h2 { font-size: 1.3em; }
+.chat-markdown h3 { font-size: 1.15em; }
+.chat-markdown :is(h4, h5, h6) { font-size: 1em; }
+
+.chat-markdown :is(ul, ol) {
+  padding-inline-start: 1.5em;
+}
+
+.chat-markdown li + li {
+  margin-top: 0.375rem;
+}
+
+.chat-markdown li :is(ul, ol) {
+  margin-block: 0.375rem;
+}
+
+.chat-markdown [data-streamdown="inline-code"] {
+  border-radius: 0.3rem;
+  background: var(--muted);
+  padding: 0.15em 0.35em;
+  font-size: 0.875em;
+  font-weight: 500;
+}
+
+.chat-markdown [data-streamdown="code-block"] {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  overflow-wrap: normal;
+}
+
+.chat-markdown [data-streamdown="code-block-header"] {
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+  padding: 0.5rem 1rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.chat-markdown [data-streamdown="code-block-body"] {
+  overflow-x: auto;
+}
+
+.chat-markdown pre {
+  padding: 1rem;
+  white-space: pre;
+}
+
+.chat-markdown [data-streamdown="table-wrapper"] {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.chat-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.chat-markdown :is(th, td) {
+  border: 1px solid var(--border);
+  padding: 0.625rem 0.875rem;
+  vertical-align: top;
+}
+
+.chat-markdown th {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+.chat-markdown blockquote {
+  border-inline-start: 3px solid var(--border);
+  padding-inline-start: 1rem;
+  color: var(--muted-foreground);
+}
+
+.chat-markdown [data-streamdown="link"] {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.chat-markdown img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+}

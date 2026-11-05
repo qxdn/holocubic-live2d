@@ -1,4 +1,5 @@
 import type { TextUIPart, UIMessage } from "ai"
+import "./style.css"
 import {
   MessageContent,
   MessageResponse,
@@ -18,7 +19,13 @@ export const ChatText = ({
     {role === "user" ? (
       <p className="whitespace-pre-wrap">{part.text}</p>
     ) : (
-      <MessageResponse isAnimating={streaming && part.state === "streaming"}>
+      <MessageResponse
+        className="chat-markdown"
+        isAnimating={streaming && part.state === "streaming"}
+        shikiTheme={["github-light", "github-dark"]}
+        controls={{ code: { copy: true, download: false } }}
+        lineNumbers={false}
+      >
         {part.text}
       </MessageResponse>
     )}
