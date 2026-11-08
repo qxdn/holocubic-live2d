@@ -12,6 +12,10 @@ export interface CharacterSpeechConfig {
 export interface Character {
   readonly id: string
   readonly agent: Agent
+  readonly model: {
+    readonly type: 'live2d'
+    readonly modelId: string
+  }
   readonly speech?: CharacterSpeechConfig
   /** 角色身份、性格和说话方式。 */
   readonly persona?: string

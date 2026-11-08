@@ -18,7 +18,7 @@ import {
 } from "@/components/ai-elements/prompt-input"
 
 type ChatProps = {
-  agentId: string
+  characterId: string
   messages: UIMessage[]
   status: ChatStatus
   error?: Error
@@ -31,7 +31,7 @@ type ChatProps = {
 
 /** Renders the chat UI using state and actions provided by the parent. */
 export const Chat = ({
-  agentId,
+  characterId,
   messages,
   status,
   error,
@@ -109,7 +109,7 @@ export const Chat = ({
           </PromptInputBody>
           <PromptInputFooter className="justify-end">
             <SpeechInput
-              agentId={agentId}
+              characterId={characterId}
               disabled={busy}
               onTranscript={(text) =>
                 onInputChange(input ? `${input} ${text}` : text)

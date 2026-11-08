@@ -3,6 +3,7 @@ import type { Env } from 'hono'
 import { chatRoutes } from './chat.ts'
 import { live2dRoutes } from './live2d.ts'
 import { speechRoutes } from './speech.ts'
+import { openAIRoutes } from './openai.ts'
 
 /** 统一在 /api 下注册各模块路由。 */
 export function registerRoutes<E extends Env>(app: OpenAPIHono<E>): void {
@@ -10,5 +11,6 @@ export function registerRoutes<E extends Env>(app: OpenAPIHono<E>): void {
   api.route('/', chatRoutes)
   api.route('/', live2dRoutes)
   api.route('/', speechRoutes)
+  api.route('/v1', openAIRoutes)
   app.route('/api', api)
 }

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { request } from "@/api/request"
 
 type SpeechInputProps = {
-  agentId: string
+  characterId: string
   disabled: boolean
   onTranscript: (text: string) => void
 }
@@ -43,7 +43,7 @@ async function toPcm(blob: Blob): Promise<ArrayBuffer> {
 
 /** Records one utterance and fills the input after backend ASR completes. */
 export const SpeechInput = ({
-  agentId,
+  characterId,
   disabled,
   onTranscript,
 }: SpeechInputProps) => {
@@ -123,7 +123,7 @@ export const SpeechInput = ({
       const pcm = await toPcm(blob)
       signal.throwIfAborted()
       const result = await request<{ text: string }>(
-        `/api/speech/asr?agentId=${encodeURIComponent(agentId)}`,
+        `/api/speech/asr?characterId=${encodeURIComponent(characterId)}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/octet-stream" },

@@ -17,9 +17,13 @@ import { chatRequestSchema } from '../models/chat.ts'
 /** 按注册 ID 选择 Agent，将输出转换为 AI SDK UI message SSE 响应。 */
 export const chatHandler: Handler = async (c) => {
   const body = chatRequestSchema.parse(await c.req.json())
-  const character = getCharacter(body.agentId)
+  const character = getCharacter(body.characterId)
+  if (character.model.type !== 'live2d') {
+    throw new AppError(ErrorCodes.ILLEGAL_PARAM, '暂不支持该角色模型类型')
+  }
+  const modelId = character.model.modelId
   const serviceContext = getServiceContext(c)
-  if (!(await getLive2dModel(serviceContext, body.modelId))) {
+  if (!(await getLive2dModel(serviceContext, modelId))) {
     throw new AppError(ErrorCodes.LIVE2D_MODEL_NOT_FOUND)
   }
   const messages = await validateUIMessages({ messages: body.messages })
@@ -30,7 +34,7 @@ export const chatHandler: Handler = async (c) => {
     serviceContext: ServiceContext
   }>()
   requestContext.set('traceId', traceId)
-  requestContext.set('modelId', body.modelId)
+  requestContext.set('modelId', modelId)
   requestContext.set('serviceContext', serviceContext)
   const stream = await handleChatStream({
     mastra,

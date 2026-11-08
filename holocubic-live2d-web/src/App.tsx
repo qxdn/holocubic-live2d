@@ -18,7 +18,7 @@ const modelUrls = {
   Hiyori: `${import.meta.env.BASE_URL}models/Hiyori/Hiyori.model3.json`,
 }
 
-const agentId = "testAgent"
+const characterId = "testAgent"
 
 /** Owns page layout and chat data flow; sessions reset on page reload. */
 export const App = () => {
@@ -45,14 +45,13 @@ export const App = () => {
   )
 
   const motions = getMotions(modelUrl)
-  const modelId = modelUrl === modelUrls.Hiyori ? "hiyori" : "haru"
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: "/api/chat",
-        body: { agentId, modelId },
+        body: { characterId },
       }),
-    [modelId]
+    []
   )
   useControls(
     () => ({
@@ -182,7 +181,7 @@ export const App = () => {
           className="flex min-h-0 min-w-0 flex-col overflow-hidden"
         >
           <Chat
-            agentId={agentId}
+            characterId={characterId}
             messages={messages}
             status={status}
             error={error}

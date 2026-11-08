@@ -8,8 +8,8 @@ import { success } from '../utils/index.ts'
 
 /** 提交完整 PCM 音频，使用 Agent 的语言配置识别。 */
 export const asrHandler: Handler<AppEnv> = async (c) => {
-  const { agentId } = asrQuerySchema.parse(c.req.query())
-  const options = getCharacter(agentId).speech?.asr
+  const { characterId } = asrQuerySchema.parse(c.req.query())
+  const options = getCharacter(characterId).speech?.asr
   if (!options) throw new AppError(ErrorCodes.AGENT_ASR_NOT_CONFIGURED)
   const provider = providerFactory(options.provider)
 
