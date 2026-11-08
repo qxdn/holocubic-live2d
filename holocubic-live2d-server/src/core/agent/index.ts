@@ -1,5 +1,5 @@
 import { testAgent, testAgentSpeech } from './test.ts'
-import { registerAgent } from './registry.ts'
+import { registerCharacter } from '../character/registry.ts'
 
 /** 注册聊天和语音共用的角色。 */
-registerAgent('testAgent', { agent: testAgent, speech: testAgentSpeech })
+registerCharacter('testAgent', { agent: testAgent, speech: testAgentSpeech })

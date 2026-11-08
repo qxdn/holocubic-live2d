@@ -5,10 +5,10 @@ import { createModel } from './model.ts'
 import { getTools, Live2dTool } from '../tools/index.ts'
 import { getLive2dModel } from '../services/live2d.ts'
 import { AppError, ErrorCodes } from '../errors/index.ts'
-import type { AgentSpeechConfig } from './registry.ts'
+import type { CharacterSpeechConfig } from '../character/index.ts'
 
 /** 测试角色使用服务端配置的豆包 ASR 实例，语言由角色决定。 */
-export const testAgentSpeech: AgentSpeechConfig = {
+export const testAgentSpeech: CharacterSpeechConfig = {
   asr: { provider: 'volcengine', language: 'zh-CN' },
 }
 

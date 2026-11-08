@@ -1,6 +1,6 @@
 import type { Handler } from 'hono'
 import type { AppEnv } from '../env.ts'
-import { getAgentDefinition } from '../core/agent/registry.ts'
+import { getCharacter } from '../core/character/registry.ts'
 import { AppError, ErrorCodes } from '../core/errors/index.ts'
 import { providerFactory } from '../core/services/speech/index.ts'
 import { asrQuerySchema } from '../models/speech.ts'
@@ -9,7 +9,7 @@ import { success } from '../utils/index.ts'
 /** 提交完整 PCM 音频，使用 Agent 的语言配置识别。 */
 export const asrHandler: Handler<AppEnv> = async (c) => {
   const { agentId } = asrQuerySchema.parse(c.req.query())
-  const options = getAgentDefinition(agentId).speech?.asr
+  const options = getCharacter(agentId).speech?.asr
   if (!options) throw new AppError(ErrorCodes.AGENT_ASR_NOT_CONFIGURED)
   const provider = providerFactory(options.provider)
 
