@@ -7,6 +7,16 @@ const webConfigSchema = z.object({
   port: z.number().int().min(0).max(65535).default(3000),
 })
 
+const websocketConfigSchema = z.object({
+  noServer: z.literal(true).default(true),
+  maxPayload: z
+    .number()
+    .int()
+    .positive()
+    .default(64 * 1024),
+  perMessageDeflate: z.boolean().default(false),
+})
+
 const dbConfigSchema = z.object({
   type: z.string().default('sqlite'),
   url: z
@@ -28,12 +38,18 @@ const speechProviderConfigSchema = z.object({
     .prefault({}),
 })
 
+const speechVadConfigSchema = z.object({
+  modelPath: z.string().trim().min(1).default('./assets/silero_vad_v6.onnx'),
+})
+
 const speechConfigSchema = z.object({
+  vad: speechVadConfigSchema.prefault({}),
   asr: speechProviderConfigSchema.prefault({}),
 })
 
 const configSchema = z.object({
   web: webConfigSchema.prefault({}),
+  websocket: websocketConfigSchema.prefault({}),
   db: dbConfigSchema.prefault({}),
   speech: speechConfigSchema.prefault({}),
 })
@@ -47,7 +63,9 @@ function readConfig(path: string): unknown {
 // -------------------- 对外导出 --------------------
 
 export type WebConfig = z.infer<typeof webConfigSchema>
+export type WebSocketConfig = z.infer<typeof websocketConfigSchema>
 export type DbConfig = z.infer<typeof dbConfigSchema>
+export type SpeechVadConfig = z.infer<typeof speechVadConfigSchema>
 export type SpeechConfig = z.infer<typeof speechConfigSchema>
 export type Config = z.infer<typeof configSchema>
 

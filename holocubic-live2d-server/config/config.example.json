@@ -2,10 +2,18 @@
   "web": {
     "port": 3000
   },
+  "websocket": {
+    "noServer": true,
+    "maxPayload": 65536,
+    "perMessageDeflate": false
+  },
   "db": {
     "url": "file:../data.db"
   },
   "speech": {
+    "vad": {
+      "modelPath": "./assets/silero_vad_v6.onnx"
+    },
     "asr": {
       "type": "volcengine",
       "options": {

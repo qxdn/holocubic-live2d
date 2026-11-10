@@ -1,5 +1,7 @@
 import { ChatMessage } from "@/components/chat/message"
 import { SpeechInput } from "@/components/chat/speech-input"
+import { SpeechStreamInput } from "@/components/chat/speech-stream-input"
+import { useControls } from "@/components/story-book"
 import { ChatEmptyState } from "@/components/chat/empty-state"
 import type { ChatStatus, UIMessage } from "ai"
 import { SparklesIcon } from "lucide-react"
@@ -42,6 +44,14 @@ export const Chat = ({
   onRegenerate,
 }: ChatProps) => {
   const busy = status === "submitted" || status === "streaming"
+  const { speechMode } = useControls("Chat", {
+    speechMode: {
+      label: "语音输入",
+      value: "single",
+      options: { 单次录音: "single", 流式输入: "stream" },
+    },
+  })
+  const Input = speechMode === "stream" ? SpeechStreamInput : SpeechInput
   return (
     <>
       {!messages.length ? (
@@ -108,7 +118,8 @@ export const Chat = ({
             />
           </PromptInputBody>
           <PromptInputFooter className="justify-end">
-            <SpeechInput
+            <Input
+              key={`${speechMode}:${characterId}`}
               characterId={characterId}
               disabled={busy}
               onTranscript={(text) =>

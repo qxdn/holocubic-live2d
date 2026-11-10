@@ -149,11 +149,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "agentId": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "modelId": {
+                  "characterId": {
                     "type": "string",
                     "minLength": 1
                   },
@@ -163,7 +159,7 @@
                     "minItems": 1
                   }
                 },
-                "required": ["agentId", "modelId", "messages"]
+                "required": ["characterId", "messages"]
               }
             }
           }
@@ -265,7 +261,7 @@
               "minLength": 1
             },
             "required": true,
-            "name": "agentId",
+            "name": "characterId",
             "in": "query"
           }
         ],
@@ -288,6 +284,114 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AsrResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/speech/stream": {
+      "get": {
+        "operationId": "streamSpeechForVad",
+        "tags": ["Speech"],
+        "summary": "建立实时语音 WebSocket 会话",
+        "description": "连接后持续发送 16 kHz、单声道、16-bit 小端 PCM 二进制帧。服务端使用 Silero VAD 检测语句边界，静音约 700 ms 后通过 WebSocket 返回最终识别文本。连接查询参数 characterId 选择 Character 及其 ASR 配置。",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "characterId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "101": {
+            "description": "WebSocket 握手成功；后续消息遵循语音流协议。"
+          },
+          "400": {
+            "description": "缺少或无效的 characterId。"
+          }
+        }
+      }
+    },
+    "/api/v1/chat/completions": {
+      "post": {
+        "operationId": "createChatCompletion",
+        "tags": ["OpenAI Compatible"],
+        "summary": "OpenAI Chat Completions compatible endpoint",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "messages": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": ["system", "user", "assistant"]
+                        },
+                        "content": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["role", "content"]
+                    },
+                    "minItems": 1
+                  },
+                  "stream": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["model", "messages"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat completion or server-sent event stream.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "object": {
+                      "type": "string",
+                      "enum": ["chat.completion"]
+                    },
+                    "created": {
+                      "type": "number"
+                    },
+                    "model": {
+                      "type": "string"
+                    },
+                    "choices": {
+                      "type": "array",
+                      "items": {}
+                    }
+                  },
+                  "required": ["id", "object", "created", "model", "choices"]
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }

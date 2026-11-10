@@ -19,6 +19,7 @@ export const ErrorCodes = {
   LIVE2D_MODEL_NOT_FOUND: defineErrorCode('10101', 'Live2D 模型不存在'),
   SPEECH_PROTOCOL_INVALID: defineErrorCode('10201', '语音识别协议错误'),
   AGENT_ASR_NOT_CONFIGURED: defineErrorCode('10202', 'Agent 未配置语音识别'),
+  SPEECH_QUEUE_FULL: defineErrorCode('10203', '语音识别队列已满'),
   AGENT_NOT_FOUND: defineErrorCode('10301', 'Agent 不存在'),
   // 2：外部错误；01：服务提供方；01：获取模型列表失败。
   PROVIDER_MODELS_FETCH_FAILED: defineErrorCode('20101', '获取模型列表失败'),

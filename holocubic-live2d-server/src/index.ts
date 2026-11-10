@@ -12,10 +12,14 @@ import { registerMiddleware } from './middleware/index.ts'
 import { registerRoutes } from './routes/index.ts'
 import { load_config } from './config/index.ts'
 import { initARS } from './core/services/speech/index.ts'
+import { initSileroVad } from './core/services/speech/silero-vad.ts'
+import { initWebSocketServer } from './core/websocket.ts'
 
 const config = load_config()
 const db = openDatabase(config.db)
 initARS(config.speech.asr)
+initSileroVad(config.speech.vad)
+const webSocketServer = initWebSocketServer(config.websocket)
 
 const app = new OpenAPIHono<AppEnv>()
 registerMiddleware(app, db.database)
@@ -28,6 +32,7 @@ const server = serve(
   {
     fetch: app.fetch,
     port: config.web.port,
+    websocket: { server: webSocketServer },
   },
   (info) => {
     logger.info({ port: info.port }, 'Server is running')
@@ -39,6 +44,7 @@ async function shutdown() {
   if (shuttingDown) return
   shuttingDown = true
   try {
+    for (const client of webSocketServer.clients) client.terminate()
     const error = await new Promise<Error | undefined>((resolve) => {
       server.close(resolve)
     })
