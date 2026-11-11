@@ -18,7 +18,7 @@ import { chatRequestSchema } from '../models/chat.ts'
 export const chatHandler: Handler = async (c) => {
   const body = chatRequestSchema.parse(await c.req.json())
   const character = getCharacter(body.characterId)
-  if (character.model.type !== 'live2d') {
+  if (!['live2d', 'frame2d'].includes(character.model.type)) {
     throw new AppError(ErrorCodes.ILLEGAL_PARAM, '暂不支持该角色模型类型')
   }
   const modelId = character.model.modelId

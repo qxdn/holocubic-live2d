@@ -13,7 +13,7 @@ export interface Character {
   readonly id: string
   readonly agent: Agent
   readonly model: {
-    readonly type: 'live2d'
+    readonly type: 'live2d' | 'frame2d'
     readonly modelId: string
   }
   readonly speech?: CharacterSpeechConfig
