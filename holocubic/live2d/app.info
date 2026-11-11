@@ -1,0 +1,9 @@
+name = Live2D
+name_zh_cn = Live2D
+name_en = Live2D
+kind = app
+category = tool
+catalog_scope = community
+entry = main.lua
+description = Chat with a configured HoloCubic character
+version = 0.1.0
