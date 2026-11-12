@@ -2,7 +2,7 @@ local M = {}
 
 local DEFAULTS = {
   api_url = "http://127.0.0.1:3000/api/v1/chat/completions",
-  character_id = "testAgent",
+  character_id = "deepseek-whale",
   timeout_ms = 60000,
 }
 

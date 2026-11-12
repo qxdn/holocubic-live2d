@@ -1,0 +1,50 @@
+{
+  "idle": {
+    "duration_ms": 2660,
+    "loop": true
+  },
+  "eat": {
+    "duration_ms": 770,
+    "loop": true
+  },
+  "putaway": {
+    "duration_ms": 1170,
+    "loop": false
+  },
+  "bless": {
+    "duration_ms": 3210,
+    "loop": false
+  },
+  "wave": {
+    "duration_ms": 2550,
+    "loop": false
+  },
+  "heart": {
+    "duration_ms": 2990,
+    "loop": false
+  },
+  "touchface": {
+    "duration_ms": 2990,
+    "loop": true
+  },
+  "eat-mid": {
+    "duration_ms": 3320,
+    "loop": false
+  },
+  "smug": {
+    "duration_ms": 2990,
+    "loop": false
+  },
+  "subagent-in": {
+    "duration_ms": 2100,
+    "loop": false
+  },
+  "subagent-loop": {
+    "duration_ms": 1990,
+    "loop": true
+  },
+  "subagent-out": {
+    "duration_ms": 1880,
+    "loop": false
+  }
+}

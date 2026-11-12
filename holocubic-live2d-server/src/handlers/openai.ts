@@ -4,10 +4,13 @@ import type { Handler } from 'hono'
 import { AppError, ErrorCodes } from '../core/errors/index.ts'
 import { getCharacter } from '../core/character/registry.ts'
 import { mastra } from '../core/mastra/index.ts'
-import { getLive2dModel } from '../core/services/live2d.ts'
+import { getCharacterModel } from '../core/services/character-model.ts'
 import { getServiceContext } from '../middleware/request-context.ts'
 
-type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string }
+type ChatMessage =
+  | { role: 'system'; content: string }
+  | { role: 'user'; content: string }
+  | { role: 'assistant'; content: string }
 
 /** Adapts Chat Completions messages to the existing Agent runtime. */
 export const openAIChatCompletionsHandler: Handler = async (c) => {
@@ -19,15 +22,17 @@ export const openAIChatCompletionsHandler: Handler = async (c) => {
   const character = getCharacter(body.model)
   const modelId = character.model.modelId
   const serviceContext = getServiceContext(c)
-  if (!(await getLive2dModel(serviceContext, modelId))) {
+  if (!(await getCharacterModel(serviceContext, character.model))) {
     throw new AppError(ErrorCodes.LIVE2D_MODEL_NOT_FOUND)
   }
 
   const requestContext = new RequestContext<{
+    modelType: 'live2d' | 'frame2d'
     modelId: string
     serviceContext: typeof serviceContext
   }>()
   requestContext.set('modelId', modelId)
+  requestContext.set('modelType', character.model.type)
   requestContext.set('serviceContext', serviceContext)
 
   const result = await mastra.getAgent(character.id).generate(body.messages, {
@@ -43,12 +48,24 @@ export const openAIChatCompletionsHandler: Handler = async (c) => {
       object: 'chat.completion' as const,
       created,
       model: body.model,
-      choices: [{ index: 0, message: { role: 'assistant', content }, finish_reason: 'stop' }],
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: 'assistant',
+            content,
+          },
+          finish_reason: 'stop',
+        },
+      ],
     })
   }
 
   const encoder = new TextEncoder()
-  const chunk = (delta: Record<string, string>, finishReason: string | null = null) =>
+  const chunk = (
+    delta: Record<string, string>,
+    finishReason: string | null = null,
+  ) =>
     `data: ${JSON.stringify({
       id,
       object: 'chat.completion.chunk',

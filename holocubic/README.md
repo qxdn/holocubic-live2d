@@ -7,12 +7,16 @@
 ```json
 {
   "api_url": "http://服务端地址:3000/api/v1/chat/completions",
-  "character_id": "testAgent",
+  "character_id": "deepseek-whale",
   "timeout_ms": 60000
 }
 ```
 
+页面左侧为 144 × 198 像素角色区，右侧聊天隐藏名字，用户蓝色气泡靠右、角色灰色气泡靠左，保留完整历史并自动滚动。启动播放 idle；服务端仅对 frame2d 角色追加动作提示词，Agent 在回复正文写 <motion>wave</motion> 等标签。Lua 从正文提取第一个有效动作名，隐藏标签并显示正文，无需动作工具或 tool 回执。Live2D 保留原有客户端工具协议。单次动作结束回到 idle，循环动作持续到下一条指令，同一循环动作不会重复加载。错误响应仅更新状态，保留用户消息、现有气泡和动画。全部 GIF 为原速度的 75%（约 9 FPS）。部署时一并复制 assets/，包括 animations.json。串口打印 motion tag（动作名）、action requested、action play、action complete 和 action clean。
+
 聊天中文字体 `live2d/font/noto_sans_sc_medium_16_2bpp_common4000.bin` 随应用一起提供，基于 Noto Sans SC，遵循 `live2d/font/OFL-NotoSansCJK.txt` 中的 SIL Open Font License 1.1。
+
+角色回复在屏幕上转换为纯文本，去除常见标题、粗体、行内代码、链接和代码围栏标记，列表保留分行，简单表格转换为分隔文本；原始消息仍用于对话请求。新增气泡后延后 80 ms 将内容末尾标记滚入视野，串口打印 `chat scrolled to end`。这是轻量文本处理，不是完整 Markdown 渲染器。
 
 聊天区和状态栏共用该中文字体，路径根据当前应用目录确定。部署时需一并复制 `font/`；启动日志应出现 `[live2d] CJK font loaded`。若出现 `CJK font unavailable`，请检查日志中的 SD 卡字体路径及固件字体加载支持；此时回退的 Montserrat 字体无法显示中文。字库是常用字子集，未收录的生僻字仍可能缺字。
 

@@ -1,5 +1,5 @@
 {
   "api_url": "http://192.168.124.19:3000/api/v1/chat/completions",
-  "character_id": "testAgent",
+  "character_id": "deepseek-whale",
   "timeout_ms": 60000
 }

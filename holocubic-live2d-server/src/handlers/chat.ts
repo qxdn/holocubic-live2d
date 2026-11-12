@@ -3,7 +3,7 @@ import { handleChatStream } from '@mastra/ai-sdk'
 import { RequestContext } from '@mastra/core/request-context'
 import { createUIMessageStreamResponse, validateUIMessages } from 'ai'
 import type { Handler } from 'hono'
-import { getLive2dModel } from '../core/services/live2d.ts'
+import { getCharacterModel } from '../core/services/character-model.ts'
 import { AppError, ErrorCodes } from '../core/errors/index.ts'
 import { logger } from '../core/logger/index.ts'
 import { mastra } from '../core/mastra/index.ts'
@@ -23,18 +23,20 @@ export const chatHandler: Handler = async (c) => {
   }
   const modelId = character.model.modelId
   const serviceContext = getServiceContext(c)
-  if (!(await getLive2dModel(serviceContext, modelId))) {
+  if (!(await getCharacterModel(serviceContext, character.model))) {
     throw new AppError(ErrorCodes.LIVE2D_MODEL_NOT_FOUND)
   }
   const messages = await validateUIMessages({ messages: body.messages })
   const traceId = ensureTraceId(c)
   const requestContext = new RequestContext<{
+    modelType: 'live2d' | 'frame2d'
     traceId: string
     modelId: string
     serviceContext: ServiceContext
   }>()
   requestContext.set('traceId', traceId)
   requestContext.set('modelId', modelId)
+  requestContext.set('modelType', character.model.type)
   requestContext.set('serviceContext', serviceContext)
   const stream = await handleChatStream({
     mastra,
