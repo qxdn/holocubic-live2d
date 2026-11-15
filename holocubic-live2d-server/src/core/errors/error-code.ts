@@ -20,11 +20,14 @@ export const ErrorCodes = {
   SPEECH_PROTOCOL_INVALID: defineErrorCode('10201', '语音识别协议错误'),
   AGENT_ASR_NOT_CONFIGURED: defineErrorCode('10202', 'Agent 未配置语音识别'),
   SPEECH_QUEUE_FULL: defineErrorCode('10203', '语音识别队列已满'),
+  CHARACTER_TTS_NOT_CONFIGURED: defineErrorCode('10204', '角色未配置语音合成'),
   AGENT_NOT_FOUND: defineErrorCode('10301', 'Agent 不存在'),
   // 2：外部错误；01：服务提供方；01：获取模型列表失败。
   PROVIDER_MODELS_FETCH_FAILED: defineErrorCode('20101', '获取模型列表失败'),
   SPEECH_PROVIDER_FAILED: defineErrorCode('20201', '语音识别服务失败'),
   SPEECH_TIMEOUT: defineErrorCode('20202', '语音识别服务超时'),
+  TTS_PROVIDER_FAILED: defineErrorCode('20203', '语音合成服务失败'),
+  TTS_TIMEOUT: defineErrorCode('20204', '语音合成服务超时'),
   // 3：系统报错；01：工具配置。
   TOOL_SERVER_EXECUTOR_MISSING: defineErrorCode(
     '30104',
@@ -36,6 +39,11 @@ export const ErrorCodes = {
   SPEECH_PROVIDER_CONFIG_INVALID: defineErrorCode(
     '30302',
     '语音识别供应商配置无效',
+  ),
+  TTS_PROVIDER_NOT_FOUND: defineErrorCode('30303', '语音合成供应商未配置'),
+  TTS_PROVIDER_CONFIG_INVALID: defineErrorCode(
+    '30304',
+    '语音合成供应商配置无效',
   ),
   // 4：未知错误；00：通用；01：未知错误。
   UNKNOWN_ERROR: defineErrorCode('40001', '未知错误'),

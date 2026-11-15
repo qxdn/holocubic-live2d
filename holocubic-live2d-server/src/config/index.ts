@@ -43,6 +43,14 @@ const speechVadConfigSchema = z.object({
 })
 
 const speechConfigSchema = z.object({
+  tts: z.object({
+    type: z.literal('volcengine').default('volcengine'),
+    options: z.object({
+      apiKey: z.string().trim().min(1),
+      resourceId: z.string().trim().min(1).optional(),
+      endpoint: z.url({ protocol: /^wss$/ }).optional(),
+    }),
+  }),
   vad: speechVadConfigSchema.prefault({}),
   asr: speechProviderConfigSchema.prefault({}),
 })
@@ -51,7 +59,7 @@ const configSchema = z.object({
   web: webConfigSchema.prefault({}),
   websocket: websocketConfigSchema.prefault({}),
   db: dbConfigSchema.prefault({}),
-  speech: speechConfigSchema.prefault({}),
+  speech: speechConfigSchema,
 })
 
 // -------------------- 私有函数 --------------------

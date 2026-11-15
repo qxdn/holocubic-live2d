@@ -1,10 +1,11 @@
-﻿import { AnthropicProvider } from '../models/anthropic-provider.ts'
+import { AnthropicProvider } from '../models/anthropic-provider.ts'
 import { createModel } from './model.ts'
 import { createAgent } from './create-agent.ts'
 import type { CharacterSpeechConfig } from '../character/index.ts'
 
 /** 测试角色使用服务端配置的豆包 ASR 实例，语言由角色决定。 */
 export const testAgentSpeech: CharacterSpeechConfig = {
+  tts: { provider: 'volcengine', voice: 'zh_female_vv_uranus_bigtts' },
   asr: { provider: 'volcengine', language: 'zh-CN' },
 }
 

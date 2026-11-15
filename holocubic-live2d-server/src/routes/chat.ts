@@ -18,7 +18,8 @@ const chatRoute = createRoute({
   },
   responses: {
     200: {
-      description: 'AI SDK UI message SSE 流。',
+      description:
+        'AI SDK UI message SSE 流；enableTts 为 true 且角色配置 TTS 时追加 transient data-audio 和 data-audio-end 事件。',
       content: { 'text/event-stream': { schema: z.string() } },
     },
   },

@@ -11,6 +11,14 @@
     "url": "file:../data.db"
   },
   "speech": {
+    "tts": {
+      "type": "volcengine",
+      "options": {
+        "apiKey": "your-volcengine-tts-api-key",
+        "resourceId": "seed-tts-2.0",
+        "endpoint": "wss://openspeech.bytedance.com/api/v3/tts/bidirection"
+      }
+    },
     "vad": {
       "modelPath": "./assets/silero_vad_v6.onnx"
     },

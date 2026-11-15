@@ -2,7 +2,7 @@ import type { Handler } from 'hono'
 import type { AppEnv } from '../env.ts'
 import { getCharacter } from '../core/character/registry.ts'
 import { AppError, ErrorCodes } from '../core/errors/index.ts'
-import { providerFactory } from '../core/services/speech/index.ts'
+import { asrProviderFactory } from '../core/services/speech/index.ts'
 import { asrQuerySchema } from '../models/speech.ts'
 import { success } from '../utils/index.ts'
 
@@ -11,7 +11,7 @@ export const asrHandler: Handler<AppEnv> = async (c) => {
   const { characterId } = asrQuerySchema.parse(c.req.query())
   const options = getCharacter(characterId).speech?.asr
   if (!options) throw new AppError(ErrorCodes.AGENT_ASR_NOT_CONFIGURED)
-  const provider = providerFactory(options.provider)
+  const provider = asrProviderFactory(options.provider)
 
   const data = new Uint8Array(await c.req.arrayBuffer())
   if (data.length === 0 || data.length % 2 !== 0) {

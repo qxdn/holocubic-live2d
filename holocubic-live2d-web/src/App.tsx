@@ -6,6 +6,8 @@ import {
   lastAssistantMessageIsCompleteWithToolCalls,
 } from "ai"
 import { Chat } from "@/components/chat"
+import { useTts } from "@/components/chat/use-tts"
+import { toast } from "sonner"
 import { Live2D, getMotions } from "@/components/live2d"
 import type { Live2DHandle } from "@/components/live2d"
 import { StoryBook, useControls } from "@/components/story-book"
@@ -22,6 +24,7 @@ const characterId = "testAgent"
 
 /** Owns page layout and chat data flow; sessions reset on page reload. */
 export const App = () => {
+  const tts = useTts()
   const live2dRef = useRef<Live2DHandle>(null)
   const { theme, setTheme } = useTheme()
 
@@ -84,6 +87,13 @@ export const App = () => {
     addToolOutput,
   } = useChat({
     transport,
+    onData(part) {
+      if (part.type === "data-audio") tts.play(part.data)
+      // audio-end closes synthesis; queued browser audio must finish playing.
+    },
+    onError() {
+      tts.clean()
+    },
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     async onToolCall({ toolCall }) {
       if (toolCall.toolName !== "live2d_motion") return
@@ -121,15 +131,40 @@ export const App = () => {
   })
   const busy = status === "submitted" || status === "streaming"
 
-  const handleSend = (text: string) => {
+  const [{ enableTts }] = useControls(
+    "TTS",
+    () => ({
+      enableTts: {
+        label: "朗读",
+        value: false,
+        transient: false,
+        disabled: busy,
+        onChange: (_value: boolean, _path, { initial }) => {
+          if (initial) return
+          tts.clean()
+        },
+      },
+    }),
+    [busy]
+  )
+
+  const handleSend = async (text: string) => {
     if (busy || !text.trim()) return
+    try {
+      if (enableTts) await tts.prepare()
+      else tts.clean()
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : "音频播放初始化失败")
+      return
+    }
     clearError()
-    void sendMessage({ text: text.trim() })
+    void sendMessage({ text: text.trim() }, { body: { enableTts } })
     setInput("")
   }
 
   const handleNewChat = () => {
     if (busy) return
+    tts.clean()
     setMessages([])
     clearError()
     setInput("")
@@ -188,9 +223,21 @@ export const App = () => {
             input={input}
             onInputChange={setInput}
             onSend={handleSend}
-            onStop={() => void stop()}
-            onRegenerate={() => {
-              if (!busy) void regenerate()
+            onStop={() => {
+              tts.clean()
+              void stop()
+            }}
+            onRegenerate={async () => {
+              if (busy) return
+              try {
+                if (enableTts) await tts.prepare()
+                else tts.clean()
+                void regenerate({ body: { enableTts } })
+              } catch (cause) {
+                toast.error(
+                  cause instanceof Error ? cause.message : "音频播放初始化失败"
+                )
+              }
             }}
           />
         </section>

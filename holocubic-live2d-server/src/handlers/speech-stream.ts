@@ -3,7 +3,7 @@ import WebSocket from 'ws'
 import { AppError } from '../core/errors/app-error.ts'
 import { ErrorCodes } from '../core/errors/error-code.ts'
 import { getCharacter } from '../core/character/registry.ts'
-import { providerFactory } from '../core/services/speech/index.ts'
+import { asrProviderFactory } from '../core/services/speech/index.ts'
 import type { AsrAudio } from '../core/services/speech/types.ts'
 import {
   createSileroVadState,
@@ -55,7 +55,7 @@ export const speechStreamHandler = upgradeWebSocket((c) => {
   const character = getCharacter(characterId)
   const asrOptions = character.speech?.asr
   if (!asrOptions) throw new AppError(ErrorCodes.AGENT_ASR_NOT_CONFIGURED)
-  const provider = providerFactory(asrOptions.provider)
+  const provider = asrProviderFactory(asrOptions.provider)
 
   // 每个连接独立维护 VAD 循环状态、上下文、音频缓存和消息处理队列。
   let vadState = createSileroVadState()

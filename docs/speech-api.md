@@ -16,20 +16,23 @@ interface AsrProvider {
 - `AsrOptions.language`：BCP 47 语言标签，例如 zh-CN，由调用方从 Agent 配置中取得。
 - `AsrResult.text`：最终完整文本。
 
-当前提供 `VolcengineAsrProvider` 厂商实现，入口通过 `initARS(config)` 创建并注册实例，handler 按 Agent 的 `speech.asr.provider` 调用 `providerFactory(provider)` 获取实例。
-也可通过 `register(type, provider)` 注册实例，相同 type 会替换原实例；获取未注册的 type 会抛出 `SPEECH_PROVIDER_NOT_FOUND`。
-`GET /api/speech/stream` 不再注册。
+当前提供 `VolcengineAsrProvider` 厂商实现，入口通过 `initARS(config)` 创建并注册实例，handler 按 Agent 的 `speech.asr.provider` 调用 `asrProviderFactory(provider)` 获取实例。
+也可通过 `registerAsr(type, provider)` 注册实例，相同 type 会替换原实例；获取未注册的 type 会抛出 `SPEECH_PROVIDER_NOT_FOUND`。
 识别结果如何提交给聊天接口由调用方决定。
+
+服务端还提供 `/api/speech/stream` Hono WebSocket 路由，用于设备持续上传 PCM 并由服务端本地 Silero VAD 切分语句。它通过 `upgradeWebSocket` 和 `@hono/node-server` 的 WebSocket adapter 接入；当前 OpenAPI 文档不描述 WebSocket 帧格式。
+
+连接地址为 `ws(s)://<host>/api/speech/stream?characterId=<id>`。连接后收到 `{ "type": "ready", "sampleRate": 16000, "format": "pcm_s16le" }`；客户端持续发送二进制裸 PCM 帧，服务端检测到约 700 ms 静音后调用下方 ASR provider，并返回 `{ "type": "transcript", "text": "..." }`。控制消息 `{ "type": "stop" }` 会立即提交当前语句，`{ "type": "ping" }` 会收到 `{ "type": "pong" }`。错误消息使用项目统一的 `BaseResponse` 格式，例如 `{ "code": "10203", "traceId": "...", "success": false, "message": "语音识别队列已满", "total": 0, "data": null }`。VAD 使用随服务端部署的 Silero ONNX 模型，模型状态按 WebSocket 会话维护。
 
 ## 对外 HTTP 接口
 
-`POST /api/speech/asr?agentId=testAgent`
+`POST /api/speech/asr?characterId=testAgent`
 
 请求头为 `Content-Type: application/octet-stream`，请求体为上述完整裸 PCM 字节。
-`agentId` 必填，识别语言取自该 Agent 的 `speech.asr.language`，供应商由 `speech.asr.provider` 指定；供应商凭据使用服务端 `speech.asr` 配置。
+`characterId` 必填，识别语言取自该 Character 的 `speech.asr.language`，供应商由 `speech.asr.provider` 指定；供应商凭据使用服务端 `speech.asr` 配置。
 
 ```sh
-curl -X POST 'http://localhost:3000/api/speech/asr?agentId=testAgent' \
+curl -X POST 'http://localhost:3000/api/speech/asr?characterId=testAgent' \
   -H 'Content-Type: application/octet-stream' \
   --data-binary '@recording.pcm'
 ```
@@ -41,8 +44,8 @@ curl -X POST 'http://localhost:3000/api/speech/asr?agentId=testAgent' \
 ```
 
 静音时 `data.text` 可以为空字符串。业务失败沿用 HTTP 200，返回 `success: false` 和 `data: null`，调用方需检查 `success`。
-空音频、奇数字节或缺少 agentId 返回 `10001`（ILLEGAL_PARAM）；未知 Agent 返回 `10301`；
-Agent 未配置 ASR 返回 `10202`；服务端未配置供应商返回 `30301`。供应商错误由统一异常处理返回。
+空音频、奇数字节或缺少 characterId 返回 `10001`（ILLEGAL_PARAM）；未知 Character 返回 `10301`；
+Character 未配置 ASR 返回 `10202`；服务端未配置供应商返回 `30301`。供应商错误由统一异常处理返回。
 接口只检查 PCM 字节对齐，调用方需确保实际采样格式正确。
 
 在服务端目录运行 `node --import tsx --test test/speech-api.test.mjs` 验证 HTTP 契约，测试使用模拟供应商。

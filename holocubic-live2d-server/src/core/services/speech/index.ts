@@ -1,11 +1,21 @@
-﻿export type * from './types.ts'
+export type * from './types.ts'
+export {
+  initTTS,
+  registerTts,
+  ttsProviderFactory,
+  type TtsProviderConfig,
+} from './tts-provider-factory.ts'
+export {
+  VolcengineTtsProvider,
+  type VolcengineTtsOptions,
+} from './providers/volcengine-tts.ts'
 export {
   initARS,
-  register,
-  providerFactory,
+  registerAsr,
+  asrProviderFactory,
   type AsrProviderConfig,
-} from './provider-factory.ts'
+} from './asr-provider-factory.ts'
 export {
   VolcengineAsrProvider,
   type VolcengineAsrOptions,
-} from './providers/volcengine.ts'
+} from './providers/volcengine-asr.ts'

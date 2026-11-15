@@ -1,7 +1,11 @@
 import type { Agent } from '@mastra/core/agent'
 
-/** 角色指定供应商和识别语言；供应商凭据由服务端配置。 */
+/** 角色指定语音供应商、识别语言和合成音色；凭据由服务端配置。 */
 export interface CharacterSpeechConfig {
+  readonly tts?: {
+    readonly provider: string
+    readonly voice: string
+  }
   readonly asr?: {
     readonly provider: string
     readonly language: string

@@ -11,13 +11,14 @@ import { logger } from './core/logger/index.ts'
 import { registerMiddleware } from './middleware/index.ts'
 import { registerRoutes } from './routes/index.ts'
 import { load_config } from './config/index.ts'
-import { initARS } from './core/services/speech/index.ts'
+import { initARS, initTTS } from './core/services/speech/index.ts'
 import { initSileroVad } from './core/services/speech/silero-vad.ts'
 import { initWebSocketServer } from './core/websocket.ts'
 
 const config = load_config()
 const db = openDatabase(config.db)
 initARS(config.speech.asr)
+initTTS(config.speech.tts)
 initSileroVad(config.speech.vad)
 const webSocketServer = initWebSocketServer(config.websocket)
 
