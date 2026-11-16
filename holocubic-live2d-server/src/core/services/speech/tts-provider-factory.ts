@@ -4,11 +4,17 @@ import {
   type VolcengineTtsOptions,
 } from './providers/volcengine-tts.ts'
 import type { TtsProvider } from './types.ts'
+import {
+  DeepseekTtsProvider,
+  type DeepseekTtsOptions,
+} from './providers/deepseek-tts.ts'
 
-export type TtsProviderConfig = {
-  readonly type: 'volcengine'
-  readonly options: VolcengineTtsOptions
-}
+export type TtsProviderConfig =
+  | {
+      readonly type: 'volcengine'
+      readonly options: VolcengineTtsOptions
+    }
+  | { readonly type: 'deepseek'; readonly options: DeepseekTtsOptions }
 
 const providers = new Map<string, TtsProvider>()
 
@@ -24,6 +30,9 @@ export function registerTts(
   }
   const config = args[0]
   switch (config.type) {
+    case 'deepseek':
+      registerTts(config.type, new DeepseekTtsProvider(config.options))
+      break
     case 'volcengine':
       registerTts(config.type, new VolcengineTtsProvider(config.options))
       break

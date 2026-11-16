@@ -12,11 +12,10 @@
   },
   "speech": {
     "tts": {
-      "type": "volcengine",
+      "type": "deepseek",
       "options": {
-        "apiKey": "your-volcengine-tts-api-key",
-        "resourceId": "seed-tts-2.0",
-        "endpoint": "wss://openspeech.bytedance.com/api/v3/tts/bidirection"
+        "apiKey": "your-deepseek-api-key",
+        "endpoint": "wss://api.deepseek.com/v1/tools/tts"
       }
     },
     "vad": {

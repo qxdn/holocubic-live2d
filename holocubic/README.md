@@ -1,6 +1,6 @@
 # HoloCubic Chat
 
-将 `live2d/` 内所有文件复制到设备 SD 卡的 `/sd/apps/live2d/`，在 Launcher 中重新扫描应用。入口 `main.lua` 负责启动与生命周期；`config.lua` 读取配置，`chat.lua` 处理聊天请求，`speech.lua` 负责麦克风采集和语音 WebSocket 会话，`view.lua` 创建 LVGL 页面。
+将 `live2d/` 内所有文件复制到设备 SD 卡的 `/sd/apps/live2d/`，在 Launcher 中重新扫描应用。入口 `main.lua` 负责启动与生命周期；`config.lua` 读取配置，`chat.lua` 处理聊天 SSE，`audio.lua` 持有录音和播放共用的 I2S 0 实例状态及配置，统一启动、停止和隔离过期回调；`tts.lua` 负责 PCM 缓冲和播放，`speech.lua` 负责麦克风采集和语音 WebSocket 会话，`view.lua` 创建 LVGL 页面。
 
 在 `config.json` 中设置服务端地址、Character ID 和超时：
 
@@ -23,3 +23,9 @@
 麦克风使用固件的默认 I2S 引脚配置，无需在 `config.json` 中填写。服务端需要注册对应 Character，并为它配置 ASR。App 启动后连接 `/api/speech/stream`，持续发送 16 kHz、16-bit、单声道 PCM；服务端使用本地 Silero VAD 检测说话起止，在静音约 700 ms 后调用 Character 配置的 ASR，并将识别文本发回设备。设备收到文本后自动请求聊天接口。
 
 当前会话消息保存在内存中，聊天区保留完整历史，新消息到达时自动滚动到底部；设备 App 重启后会清空。VAD 模型随服务端部署在 `holocubic-live2d-server/assets/silero_vad_v6.onnx`。真实麦克风格式、网络传输和设备固件运行仍需在 HoloCubic 上验证。
+
+聊天默认开启 TTS：从现有 `api_url` 推导 `/api/chat`，发送 Character ID、UI message 历史和 `enableTts: true`，无需修改现有配置。服务端必须为该 Character 配置 `speech.tts`；音色和密钥均由服务端管理。文字增量更新气泡，完整动作标签触发动画；音频事件解码为 24 kHz、单声道 PCM16，使用设备自带 MP3 播放器相同的 I2S 输出配置（data_out_pin = 48）播放。请求期间暂停麦克风，累计约 1 秒音频后起播，使用 I2S tx 完成回调续送，每次最多 4096 字节。参考音乐播放器的低水位策略，队列不足 250 ms 时暂停送数，保留 I2S，累计约 1 秒后由音频入队唤醒续播；合成结束时直接送完短尾音。仅在最终播放结束时用静音排空 DMA，然后关闭 I2S，等待 HTTP 也完成后恢复采集。音频持续接收并在 Lua 内存中排队，不按队列时长暂停 HTTP 接收，也不设置队列截断。此实现仍使用 Lua 回调，未复用音乐播放器 `audio.so` 的原生双任务及 PSRAM 环形缓冲；保留 I2S 等待期间的实际扬声器行为需设备验证。请求失败或退出 App 时关闭请求、停止播放并清理队列。
+
+可在仓库根目录执行 `lua holocubic/tests/tts.lua`，用模拟固件接口验证 SSE 拆包、动作、PCM 顺序、播放完成、长回复持续接收、缺数据恢复和异常清理。此测试不替代设备扬声器及 I2S 收发切换验证。
+
+PCM 使用可扩容的分块环形队列，复用槽位并在消费后释放音频引用；容量按需增长，不会截断长回复，也不等同于原生模块的固定 PSRAM 字节缓冲。Base64 按批次转换，减少三字节临时字符串。`lua holocubic/tests/audio.lua` 验证共享 I2S 的模式切换、过期回调、启动失败恢复，以及 ASR 断线和清理不误停 TTS。

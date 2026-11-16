@@ -32,9 +32,9 @@ export function addSpeechToStream(
   void audioDone.catch(() => {})
   const cancel = () => {
     rejectAudio(
-      signal.reason instanceof Error
-        ? signal.reason
-        : new AppError(ErrorCodes.UNKNOWN_ERROR, '聊天已取消'),
+      new AppError(ErrorCodes.TTS_CANCELED, undefined, {
+        cause: signal.reason,
+      }),
     )
   }
   signal.addEventListener('abort', cancel, { once: true })
@@ -102,13 +102,21 @@ export function addSpeechToStream(
           write({ type: 'data-audio-end', data: {}, transient: true })
           write(finish)
         } catch (cause) {
+          const error = signal.aborted
+            ? new AppError(ErrorCodes.TTS_CANCELED, undefined, { cause })
+            : cause
+          if (
+            error instanceof AppError &&
+            error.code === ErrorCodes.TTS_CANCELED.code
+          )
+            return
           if (!closed) {
-            logger.warn({ err: cause }, 'Chat speech stream failed')
+            logger.warn({ err: error }, 'Chat speech stream failed')
             output.enqueue({
               type: 'error',
               errorText:
-                cause instanceof AppError
-                  ? cause.message
+                error instanceof AppError
+                  ? error.message
                   : ErrorCodes.UNKNOWN_ERROR.desc,
             })
           }

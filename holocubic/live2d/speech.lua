@@ -16,13 +16,15 @@ local function stream_url(config)
   return url .. separator .. "characterId=" .. encode_query(config.character_id)
 end
 
-function M.create(app_state, config, view, chat)
+function M.create(app_state, config, view, audio, on_transcript)
   local client
   local reconnect_timer = tmr.create()
-  local recording = false
+  local paused = false
   local ready = false
   local start_recording
   local start
+  local connected_at = 0
+  local sent_bytes = 0
 
   local function schedule_reconnect()
     if app_state.stopped or app.exiting() then return end
@@ -42,6 +44,7 @@ function M.create(app_state, config, view, chat)
     if message.type == "ready" then
       ready = true
       start_recording()
+      if paused then return end
       view.set_status("正在聆听")
       view.set_hint("直接说话，停顿后自动识别并发送")
       return
@@ -51,7 +54,7 @@ function M.create(app_state, config, view, chat)
       if text ~= "" and not app_state.busy then
         view.set_input(text)
         view.set_status("已识别，正在回复…")
-        chat.send(text)
+        on_transcript(text)
       end
       return
     end
@@ -61,27 +64,19 @@ function M.create(app_state, config, view, chat)
   end
 
   start_recording = function()
-    if recording or app_state.stopped then return end
-    local i2s_num = 0
-    local ok, err = pcall(i2s.start, i2s_num, {
-      mode = i2s.MODE_MASTER + i2s.MODE_RX,
-      rate = SAMPLE_RATE,
-      bits = 16,
-      channel = i2s.CHANNEL_ONLY_LEFT,
-      format = i2s.FORMAT_I2S,
-      buffer_count = 4,
-      buffer_len = 512,
-    }, function(i2s_num, direction)
-      if direction ~= "rx" or app_state.stopped then return end
+    if audio.mode == "rx" or paused or app_state.stopped then return end
+    local ok, err = pcall(audio.start, "rx", function(i2s_num)
+      if app_state.stopped then return end
       local read_ok, data = pcall(i2s.read, i2s_num, CHUNK_BYTES, 10)
       if not read_ok then
         print("[live2d] i2s read error", tostring(data))
         return
       end
       if type(data) ~= "string" or #data == 0 then return end
-      if ready and not app_state.busy and client then
+      if ready and not paused and not app_state.busy and client then
         local sent, send_error = pcall(client.send, client, data, websocket.BINARY)
         if not sent then print("[live2d] speech ws send error", tostring(send_error)) end
+        if sent then sent_bytes = sent_bytes + #data end
       end
     end)
     if not ok then
@@ -90,14 +85,11 @@ function M.create(app_state, config, view, chat)
       view.set_hint(tostring(err or "检查 I2S GPIO 与固件支持"))
       return
     end
-    recording = true
-    print("[live2d] i2s started", i2s_num, SAMPLE_RATE, 16, "mono")
+    print("[live2d] i2s started", audio.port, SAMPLE_RATE, 16, "mono")
   end
 
   local function stop_recording()
-    if not recording then return end
-    recording = false
-    pcall(i2s.stop, 0)
+    pcall(audio.stop, "rx")
   end
 
   start = function()
@@ -112,14 +104,16 @@ function M.create(app_state, config, view, chat)
     client = value
     print("[live2d] speech ws connecting", stream_url(config))
     client:on("connection", function()
+      connected_at, sent_bytes = tmr.time(), 0
       print("[live2d] speech ws connected")
       view.set_status("正在连接语音服务…")
     end)
     client:on("receive", function(first, second)
       receive_message(type(second) == "string" and second or first)
     end)
-    client:on("close", function()
-      print("[live2d] speech ws closed")
+    client:on("close", function(_, code)
+      print("[live2d] speech ws closed", "code", tostring(code),
+        "seconds", tmr.time() - connected_at, "attempted_bytes", sent_bytes)
       client = nil
       ready = false
       stop_recording()
@@ -149,7 +143,17 @@ function M.create(app_state, config, view, chat)
     end
   end
 
-  return { start = start, clean = clean }
+  local function pause()
+    paused = true
+    stop_recording()
+  end
+
+  local function resume()
+    paused = false
+    if ready then start_recording() end
+  end
+
+  return { start = start, clean = clean, pause = pause, resume = resume }
 end
 
 return M

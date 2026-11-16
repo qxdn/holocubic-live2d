@@ -29,6 +29,7 @@ function M.create(directory)
   local text_font
   local rendered = {}
   local rows = {}
+  local labels = {}
   local tail
   local stopped = false
   local scroll_timer = tmr.create()
@@ -46,26 +47,33 @@ function M.create(directory)
 
   local function render(messages)
     if stopped then return end
-    scroll_timer:stop()
-    if tail then lv_obj_del(tail) tail = nil end
-    print("[live2d] render messages", #messages)
-    -- Keep existing bubbles mounted to avoid clearing the screen on errors.
+    local changed = false
+    -- Content deltas update the existing label; only structural changes remove rows.
     local first = 1
     while first <= #messages and rendered[first]
-      and rendered[first].role == messages[first].role
-      and rendered[first].content == messages[first].content do
+      and rendered[first].role == messages[first].role do
       first = first + 1
     end
     for i = #rows, first, -1 do
       lv_obj_del(rows[i])
-      rows[i], rendered[i] = nil, nil
+      rows[i], rendered[i], labels[i] = nil, nil, nil
+      changed = true
     end
+    for i = 1, first - 1 do
+      local message = messages[i]
+      local content = message.role == "user" and message.content or markdown.to_text(message.content)
+      if rendered[i].content ~= content then
+        lv_label_set_text(labels[i], content)
+        rendered[i].content = content
+        changed = true
+      end
+    end
+    if first <= #messages and tail then lv_obj_del(tail) tail = nil end
     for i = first, #messages do
       local message = messages[i]
       local is_user = message.role == "user"
       local row = lv_obj_create(history)
       rows[i] = row
-      rendered[i] = { role = message.role, content = message.content }
       style(row, BG)
       lv_obj_set_style_pad_all(row, 0, MAIN)
       lv_obj_set_size(row, 152, LV_SIZE_CONTENT)
@@ -78,13 +86,19 @@ function M.create(directory)
       lv_obj_set_width(bubble, 132)
       lv_obj_set_height(bubble, LV_SIZE_CONTENT)
       local content = is_user and message.content or markdown.to_text(message.content)
-      label(bubble, content, 0, 0, 120, LV_SIZE_CONTENT, chat_font, TEXT)
+      rendered[i] = { role = message.role, content = content }
+      labels[i] = label(bubble, content, 0, 0, 120, LV_SIZE_CONTENT, chat_font, TEXT)
+      changed = true
     end
+    if not changed then return end
+    scroll_timer:stop()
     -- A short end marker also handles a final bubble taller than the viewport.
-    tail = lv_obj_create(history)
-    style(tail, BG)
-    lv_obj_set_style_pad_all(tail, 0, MAIN)
-    lv_obj_set_size(tail, 1, 1)
+    if not tail then
+      tail = lv_obj_create(history)
+      style(tail, BG)
+      lv_obj_set_style_pad_all(tail, 0, MAIN)
+      lv_obj_set_size(tail, 1, 1)
+    end
     -- Flex layout is deferred. Scroll after its next pass, without an animation
     -- that could race another response or use the old content height.
     scroll_timer:alarm(80, tmr.ALARM_SINGLE, function()

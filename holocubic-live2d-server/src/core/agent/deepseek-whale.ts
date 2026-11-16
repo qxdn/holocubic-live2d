@@ -5,7 +5,7 @@ import type { CharacterSpeechConfig } from '../character/index.ts'
 
 /** 鲸鱼娘使用服务端配置的豆包 ASR 实例。 */
 export const deepseekWhaleSpeech: CharacterSpeechConfig = {
-  tts: { provider: 'volcengine', voice: 'zh_female_vv_uranus_bigtts' },
+  tts: { provider: 'deepseek', voice: 'stella' },
   asr: { provider: 'volcengine', language: 'zh-CN' },
 }
 

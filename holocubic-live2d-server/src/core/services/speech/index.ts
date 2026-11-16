@@ -1,5 +1,9 @@
 export type * from './types.ts'
 export {
+  DeepseekTtsProvider,
+  type DeepseekTtsOptions,
+} from './providers/deepseek-tts.ts'
+export {
   initTTS,
   registerTts,
   ttsProviderFactory,

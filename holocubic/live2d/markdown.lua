@@ -4,8 +4,25 @@ local M = {}
 function M.to_text(value)
   local text = value:gsub("\r\n", "\n")
   text = text:gsub("<motion>.-</motion>", "")
+  -- Hide an open action tag and its payload until the closing tag arrives.
+  text = text:gsub("<motion>.*$", "")
+  -- The opening tag itself can also be split across SSE deltas.
+  for length = 1, #"<motion>" - 1 do
+    local prefix = ("<motion>"):sub(1, length)
+    if text:sub(-length) == prefix then
+      text = text:sub(1, #text - length)
+      break
+    end
+  end
   -- Text imitating a tool call is not an executable client instruction.
   text = text:gsub("%[tool:[^%]]*%]", "")
+  text = text:gsub("%[tool:[^%]]*$", "")
+  for length = 1, #"[tool:" - 1 do
+    if text:sub(-length) == ("[tool:"):sub(1, length) then
+      text = text:sub(1, #text - length)
+      break
+    end
+  end
   local lines = {}
   local code = false
   for raw_line in (text .. "\n"):gmatch("(.-)\n") do

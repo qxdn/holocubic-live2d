@@ -37,7 +37,9 @@ export class VolcengineTtsProvider implements TtsProvider {
       return Promise.reject(new AppError(ErrorCodes.ILLEGAL_PARAM))
     if (options.signal?.aborted)
       return Promise.reject(
-        new Error('TTS session aborted', { cause: options.signal.reason }),
+        new AppError(ErrorCodes.TTS_CANCELED, undefined, {
+          cause: options.signal.reason,
+        }),
       )
     return new Promise((resolve, reject) => {
       const sessionId = randomUUID()
@@ -85,7 +87,10 @@ export class VolcengineTtsProvider implements TtsProvider {
       }
       const send = (event: number, payload: unknown = {}, id?: string) => {
         if (ws.readyState !== WebSocket.OPEN || ws.bufferedAmount > 256 * 1024)
-          throw new Error('TTS upstream unavailable or congested')
+          throw new AppError(
+            ErrorCodes.TTS_PROVIDER_FAILED,
+            'TTS upstream unavailable or congested',
+          )
         ws.send(encodeTtsFrame(event, payload, id), (error) => {
           if (error) fail(error)
         })
@@ -106,8 +111,7 @@ export class VolcengineTtsProvider implements TtsProvider {
         if (state === 'closed') return
         const wasOpened = opened
         clean()
-        if (!wasOpened)
-          reject(new DOMException('TTS session canceled', 'AbortError'))
+        if (!wasOpened) reject(new AppError(ErrorCodes.TTS_CANCELED))
       }
       const lifetime = setTimeout(
         () => fail(new AppError(ErrorCodes.TTS_TIMEOUT)),
@@ -161,7 +165,12 @@ export class VolcengineTtsProvider implements TtsProvider {
           'TTS handshake rejected',
         )
         response.resume()
-        fail(new Error(`TTS handshake rejected: HTTP ${response.statusCode}`))
+        fail(
+          new AppError(
+            ErrorCodes.TTS_PROVIDER_FAILED,
+            `TTS handshake rejected: HTTP ${response.statusCode}`,
+          ),
+        )
       })
       ws.on('open', () => {
         try {
@@ -173,7 +182,11 @@ export class VolcengineTtsProvider implements TtsProvider {
       ws.on('message', (data, binary) => {
         if (state === 'closed') return
         try {
-          if (!binary) throw new Error('Expected binary TTS frame')
+          if (!binary)
+            throw new AppError(
+              ErrorCodes.TTS_PROVIDER_FAILED,
+              'Expected binary TTS frame',
+            )
           const frame = decodeTtsFrame(
             Buffer.isBuffer(data) ? data : Buffer.from(data as ArrayBuffer),
           )
@@ -186,10 +199,16 @@ export class VolcengineTtsProvider implements TtsProvider {
               { event: frame.event, detail: frame.payload.toString('utf8') },
               'TTS upstream rejected session',
             )
-            throw new Error('TTS upstream rejected session')
+            throw new AppError(
+              ErrorCodes.TTS_PROVIDER_FAILED,
+              'TTS upstream rejected session',
+            )
           }
           if (frame.event >= 100 && frame.id !== sessionId)
-            throw new Error('TTS session ID mismatch')
+            throw new AppError(
+              ErrorCodes.TTS_PROVIDER_FAILED,
+              'TTS session ID mismatch',
+            )
           if (
             frame.event === TtsEvent.ConnectionStarted &&
             state === 'connection'
@@ -210,7 +229,10 @@ export class VolcengineTtsProvider implements TtsProvider {
             resolve(session)
           } else if (frame.event === TtsEvent.Audio) {
             if (!opened || frame.type !== 11 || frame.payload.length % 2 !== 0)
-              throw new Error('Invalid TTS PCM audio')
+              throw new AppError(
+                ErrorCodes.TTS_PROVIDER_FAILED,
+                'Invalid TTS PCM audio',
+              )
             if (frame.payload.length) {
               receivedAudio = true
               callbacks.onAudio(frame.payload)
@@ -218,7 +240,10 @@ export class VolcengineTtsProvider implements TtsProvider {
             if (ws.readyState === WebSocket.OPEN) armTimeout(60_000)
           } else if (frame.event === TtsEvent.SessionFinished) {
             if (state !== 'finishing' || !receivedAudio)
-              throw new Error('Incomplete TTS session')
+              throw new AppError(
+                ErrorCodes.TTS_PROVIDER_FAILED,
+                'Incomplete TTS session',
+              )
             clean()
             callbacks.onDone()
           } else if (
@@ -226,7 +251,10 @@ export class VolcengineTtsProvider implements TtsProvider {
               frame.event as 52 | 151,
             )
           ) {
-            throw new Error('TTS session closed unexpectedly')
+            throw new AppError(
+              ErrorCodes.TTS_PROVIDER_FAILED,
+              'TTS session closed unexpectedly',
+            )
           }
         } catch (error) {
           fail(error)
@@ -235,7 +263,12 @@ export class VolcengineTtsProvider implements TtsProvider {
       ws.on('error', fail)
       ws.on('close', () => {
         if (state !== 'closed')
-          fail(new Error('TTS upstream closed before completion'))
+          fail(
+            new AppError(
+              ErrorCodes.TTS_PROVIDER_FAILED,
+              'TTS upstream closed before completion',
+            ),
+          )
       })
     })
   }

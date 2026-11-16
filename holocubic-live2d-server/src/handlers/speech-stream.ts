@@ -56,6 +56,13 @@ export const speechStreamHandler = upgradeWebSocket((c) => {
   const asrOptions = character.speech?.asr
   if (!asrOptions) throw new AppError(ErrorCodes.AGENT_ASR_NOT_CONFIGURED)
   const provider = asrProviderFactory(asrOptions.provider)
+  const connectionId = crypto.randomUUID()
+  const connectedAt = Date.now()
+  let receivedBytes = 0
+  let receivedMessages = 0
+  let lastMessageAt = connectedAt
+  let pendingMessages = 0
+  let peakPendingMessages = 0
 
   // 每个连接独立维护 VAD 循环状态、上下文、音频缓存和消息处理队列。
   let vadState = createSileroVadState()
@@ -206,6 +213,7 @@ export const speechStreamHandler = upgradeWebSocket((c) => {
     }
 
     const chunk = toBuffer(data)
+    receivedBytes += chunk.byteLength
     if (chunk.byteLength === 0) return
     pendingBytes = pendingBytes.length
       ? Buffer.concat([pendingBytes, chunk])
@@ -220,6 +228,7 @@ export const speechStreamHandler = upgradeWebSocket((c) => {
 
   return {
     onOpen(_event, ws) {
+      logger.info({ connectionId, characterId }, 'Speech WebSocket opened')
       // 模型初始化完成后再通知客户端开始发送音频。
       void warmUpSileroVad()
         .then(() =>
@@ -240,6 +249,10 @@ export const speechStreamHandler = upgradeWebSocket((c) => {
         })
     },
     onMessage(event, ws) {
+      receivedMessages += 1
+      lastMessageAt = Date.now()
+      pendingMessages += 1
+      peakPendingMessages = Math.max(peakPendingMessages, pendingMessages)
       // 将当前消息接到队尾并更新队列尾部，避免异步 VAD 推理导致帧乱序。
       processing = processing
         .then(() => processMessage(event.data, ws))
@@ -248,11 +261,32 @@ export const speechStreamHandler = upgradeWebSocket((c) => {
             { err: error, characterId },
             'Speech stream processing failed',
           )
-          sendError(ws, ErrorCodes.SPEECH_PROTOCOL_INVALID.code, '语音流处理失败')
+          sendError(
+            ws,
+            ErrorCodes.SPEECH_PROTOCOL_INVALID.code,
+            '语音流处理失败',
+          )
           ws.close(1011, 'speech processing failed')
         })
+        .finally(() => {
+          pendingMessages -= 1
+        })
     },
-    onClose() {
+    onClose(event) {
+      logger.info(
+        {
+          connectionId,
+          characterId,
+          code: event.code,
+          reason: event.reason,
+          durationMs: Date.now() - connectedAt,
+          receivedBytes,
+          receivedMessages,
+          idleMs: Date.now() - lastMessageAt,
+          peakPendingMessages,
+        },
+        'Speech WebSocket closed',
+      )
       // 连接结束后释放尚未组成完整帧或语句的缓存。
       closed = true
       pendingBytes = Buffer.alloc(0)
@@ -261,7 +295,7 @@ export const speechStreamHandler = upgradeWebSocket((c) => {
     onError(event, ws) {
       // 发生传输错误时关闭当前会话。
       logger.warn(
-        { eventType: event.type, characterId },
+        { eventType: event.type, connectionId, characterId, event },
         'Speech WebSocket error',
       )
       ws.close(1011, 'speech WebSocket error')

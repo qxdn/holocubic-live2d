@@ -44,7 +44,7 @@ const speechVadConfigSchema = z.object({
 
 const speechConfigSchema = z.object({
   tts: z.object({
-    type: z.literal('volcengine').default('volcengine'),
+    type: z.enum(['volcengine', 'deepseek']).default('volcengine'),
     options: z.object({
       apiKey: z.string().trim().min(1),
       resourceId: z.string().trim().min(1).optional(),

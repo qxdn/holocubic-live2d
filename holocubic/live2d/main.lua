@@ -24,17 +24,16 @@ local function start()
   local directory = app_directory()
   local config = load_module(directory, "config").load(directory)
   local view = load_module(directory, "view").create(directory)
-  local chat = load_module(directory, "chat").create(APP, config, view)
-  local speech = load_module(directory, "speech").create(APP, config, view, chat)
+  local audio = load_module(directory, "audio").create()
+  local chat
+  local speech = load_module(directory, "speech").create(APP, config, view, audio, function(text) chat.send(text) end)
+  local tts = load_module(directory, "tts").create(speech, audio)
+  chat = load_module(directory, "chat").create(APP, config, view, tts, speech)
 
   function APP.stop()
     if APP.stopped then return end
     APP.stopped = true
-    if APP.request and APP.request.close then
-      pcall(function() APP.request:close() end)
-    end
-    APP.request = nil
-    APP.busy = false
+    chat.clean()
     speech.clean()
     view.clean()
     if rawget(_G, APP_KEY) == APP then _G[APP_KEY] = nil end
