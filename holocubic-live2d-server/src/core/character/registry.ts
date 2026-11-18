@@ -1,4 +1,4 @@
-import type { Character } from './index.ts'
+import type { Character } from './definition.ts'
 import { mastra } from '../mastra/index.ts'
 import { AppError } from '../errors/app-error.ts'
 import { ErrorCodes } from '../errors/error-code.ts'

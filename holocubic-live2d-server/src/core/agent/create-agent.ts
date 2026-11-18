@@ -40,7 +40,8 @@ export function createAgent({
       }
     },
     instructions: async ({ requestContext }) => {
-      if (requestContext.get('modelType') !== 'frame2d') return instructions
+      if (requestContext.get('modelType') !== 'frame2d')
+        return instructions
       const model = await getCharacterModel(
         requestContext.get('serviceContext'),
         {

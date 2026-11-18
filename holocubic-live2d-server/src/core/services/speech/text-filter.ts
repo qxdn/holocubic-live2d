@@ -1,5 +1,10 @@
 /** 标签及其内部内容都不参与朗读；新增隐藏标签时在此扩展。 */
-const HIDDEN_TAGS: readonly string[] = ['think', 'motion', 'script', 'style']
+const HIDDEN_TAGS: readonly string[] = [
+  'think',
+  'motion',
+  'script',
+  'style',
+]
 
 /** 增量过滤标签：跨分块保留未闭合标签，隐藏内心独白、动作和脚本内容。 */
 export class SpeechTextFilter {

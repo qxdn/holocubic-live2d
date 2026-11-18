@@ -1,6 +1,6 @@
 // Telemetry 必须在 Hono 创建 tracer 和 meter 前初始化。
 import { shutdownTelemetry } from './telemetry.ts'
-import './core/agent/index.ts'
+import './core/character/index.ts'
 import { openDatabase } from './core/db/index.ts'
 import { serve } from '@hono/node-server'
 import { OpenAPIHono } from '@hono/zod-openapi'

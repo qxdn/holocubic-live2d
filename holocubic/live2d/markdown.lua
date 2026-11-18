@@ -1,19 +1,24 @@
 local M = {}
 
--- Small-screen plain text; keep the original Markdown in conversation history.
-function M.to_text(value)
-  local text = value:gsub("\r\n", "\n")
-  text = text:gsub("<motion>.-</motion>", "")
-  -- Hide an open action tag and its payload until the closing tag arrives.
-  text = text:gsub("<motion>.*$", "")
-  -- The opening tag itself can also be split across SSE deltas.
-  for length = 1, #"<motion>" - 1 do
-    local prefix = ("<motion>"):sub(1, length)
-    if text:sub(-length) == prefix then
+local function hide_tag(text, name)
+  local opening = "<" .. name .. ">"
+  text = text:gsub(opening .. ".-</" .. name .. ">", "")
+  text = text:gsub(opening .. ".*$", "")
+  for length = 1, #opening - 1 do
+    local prefix = opening:sub(1, length)
+    if text:sub(-length):lower() == prefix then
       text = text:sub(1, #text - length)
       break
     end
   end
+  return text
+end
+
+-- Small-screen plain text; keep the original Markdown in conversation history.
+function M.to_text(value)
+  local text = value:gsub("\r\n", "\n")
+  text = hide_tag(text, "think")
+  text = hide_tag(text, "motion")
   -- Text imitating a tool call is not an executable client instruction.
   text = text:gsub("%[tool:[^%]]*%]", "")
   text = text:gsub("%[tool:[^%]]*$", "")
