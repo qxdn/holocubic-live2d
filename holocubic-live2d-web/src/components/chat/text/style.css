@@ -6,6 +6,11 @@
   overflow-wrap: anywhere;
 }
 
+.chat-markdown .inner-thought {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
 .chat-markdown > * + * {
   margin-top: 1rem;
 }
