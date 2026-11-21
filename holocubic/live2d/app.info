@@ -5,5 +5,6 @@ kind = app
 category = tool
 catalog_scope = community
 entry = main.lua
+icon = main.png
 description = Chat with a configured HoloCubic character
 version = 0.1.0

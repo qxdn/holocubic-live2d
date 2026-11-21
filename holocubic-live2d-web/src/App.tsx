@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react"
-import { button, folder } from "leva"
+import { button, folder, Leva } from "leva"
 import { useChat } from "@ai-sdk/react"
 import {
   DefaultChatTransport,
@@ -14,6 +14,7 @@ import { StoryBook, useControls } from "@/components/story-book"
 import { MoonIcon, SquarePenIcon, SparklesIcon, SunIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "@/components/theme-provider"
+import { isDev } from "@/lib/env"
 
 const modelUrls = {
   Haru: `${import.meta.env.BASE_URL}models/Haru/Haru.model3.json`,
@@ -28,14 +29,8 @@ export const App = () => {
   const live2dRef = useRef<Live2DHandle>(null)
   const { theme, setTheme } = useTheme()
 
-  const [{ mode: storyBookMode, modelUrl }] = useControls(
+  const [{ modelUrl }] = useControls(
     () => ({
-      StoryBook: folder({
-        mode: {
-          label: "展示模式",
-          options: { panel: "panel", floating: "floating" } as const,
-        },
-      }),
       Live2D: folder({
         modelUrl: {
           label: "模型",
@@ -203,14 +198,9 @@ export const App = () => {
           </Button>
         </div>
       </header>
+      {isDev ? <StoryBook mode="floating" /> : <Leva hidden />}
       {/* 侧栏预留给设置与 Live2D；窄屏先保证聊天区域可用。 */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,6fr)_minmax(0,3fr)]">
-        <aside
-          aria-label="StoryBook"
-          className="hidden min-h-0 overflow-y-auto border-r lg:block"
-        >
-          <StoryBook mode={storyBookMode} />
-        </aside>
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <section
           aria-label="Chat"
           className="flex min-h-0 min-w-0 flex-col overflow-hidden"
